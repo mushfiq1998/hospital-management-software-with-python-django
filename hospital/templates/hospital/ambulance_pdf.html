@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambulance Details</title>
+    <style>
+        body {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+        .container {
+            background-color: #f1f8e9;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .text-primary {
+            color: #2e7d32;
+        }
+        h2 {
+            color: #2e7d32;
+            border-bottom: 2px solid #4caf50;
+            padding-bottom: 10px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .ambulance-photo {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #4caf50;
+            margin-bottom: 15px;
+        }
+        .detail-item {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ambulance Details</h2>
+        
+        {% if ambulance.photo %}
+            <img src="{{ ambulance.photo.url }}" alt="Ambulance Photo" class="ambulance-photo">
+        {% else %}
+            <p>No photo available</p>
+        {% endif %}
+        <div class="detail-item"><strong class="text-primary">Vehicle Number:</strong> {{ ambulance.vehicle_number }}</div>
+        <div class="detail-item"><strong class="text-primary">Model:</strong> {{ ambulance.model }}</div>
+        <div class="detail-item"><strong class="text-primary">Capacity:</strong> {{ ambulance.capacity }}</div>
+        <div class="detail-item"><strong class="text-primary">Status:</strong> {{ ambulance.get_status_display }}</div>
+        <div class="detail-item"><strong class="text-primary">Last Maintenance:</strong> {{ ambulance.last_maintenance|default:"Not available" }}</div>
+    </div>
+</body>
+</html>

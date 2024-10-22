@@ -1,0 +1,205 @@
+{% extends 'hospital/base.html' %}
+
+{% block content %}
+<div class="patient-details-container">
+    <div class="patient-header">
+        <h2>Patient Details</h2>
+    </div>
+    <div class="patient-card">
+        <div class="patient-photo">
+            {% if patient.photo %}
+                <img src="{{ patient.photo.path}}" alt="{{ patient.name }}"
+                 class="patient-image">
+            {% else %}
+                <div class="no-photo">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="patient-info">
+            <h3>{{ patient.name }}</h3>
+            <ul class="info-list">
+                <li><i class="fas fa-birthday-cake"></i> 
+                    <strong>Date of Birth:</strong> 
+                    {{ patient.date_of_birth|default_if_none:"N/A" }}
+                </li>
+                <li><i class="fas fa-venus-mars"></i> 
+                    <strong>Gender:</strong> 
+                    {{ patient.get_gender_display|default_if_none:"N/A" }}
+                </li>
+                <li><i class="fas fa-phone"></i> 
+                    <strong>Phone:</strong> 
+                    {{ patient.phone_number|default_if_none:"N/A" }}
+                </li>
+                <li><i class="fas fa-envelope"></i> 
+                    <strong>Email:</strong> 
+                    {{ patient.email|default_if_none:"N/A" }}
+                </li>
+                <li><i class="fas fa-map-marker-alt"></i> 
+                    <strong>Address:</strong> 
+                    {{ patient.address|default_if_none:"N/A" }}
+                </li>
+                <li><i class="fas fa-user-tag"></i> 
+                    <strong>Patient Type:</strong> 
+                    {{ patient.get_patient_type_display }}
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="patient-status">
+        <div class="status-item">
+            <h4><i class="fas fa-bed"></i> Bed Assignment</h4>
+            {% if patient.bed %}
+                <p class="status-info">
+                    {{ patient.bed.number }} in {{ patient.bed.ward.name }}
+                </p>
+            {% else %}
+                <p class="status-info">Not assigned</p>
+                <a href="{% url 'assign_bed' patient.id %}" 
+                class="btn btn-primary">Assign Bed
+            </a>
+            {% endif %}
+        </div>
+        <div class="status-item">
+            <h4><i class="fas fa-hospital-user"></i> Admission Status</h4>
+            {% if patient.is_admitted %}
+                <p class="status-info">Admitted on {{ patient.admission_date }}</p>
+            {% else %}
+                <p class="status-info">Not admitted</p>
+                <a href="{% url 'admit_patient' patient.id %}" 
+                class="btn btn-primary">Admit Patient
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        font-size: 14px;
+    }
+
+    .patient-details-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 15px;
+        background-color: #e8f5e9;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 128, 0, 0.1);
+    }
+
+    .patient-header h2 {
+        color: #2e7d32;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 1.8em;
+        border-bottom: 1px solid #4caf50;
+        padding-bottom: 8px;
+    }
+
+    .patient-card {
+        display: flex;
+        background-color: #ffffff;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 3px 4px rgba(0, 128, 0, 0.1);
+    }
+
+    .patient-photo {
+        flex: 0 0 150px;
+        background-color: #c8e6c9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .patient-image, .no-photo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .no-photo {
+        background-color: #81c784;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 70px;
+        color: #e8f5e9;
+    }
+
+    .patient-info {
+        flex: 1;
+        padding: 15px;
+    }
+
+    .patient-info h3 {
+        color: #2e7d32;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+    }
+
+    .info-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .info-list li {
+        margin-bottom: 10px;
+        color: #1b5e20;
+        font-size: 1em;
+    }
+
+    .info-list i {
+        width: 20px;
+        color: #4caf50;
+    }
+
+    .patient-status {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    .status-item {
+        flex: 0 0 48%;
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 6px;
+        box-shadow: 0 2px 3px rgba(0, 128, 0, 0.1);
+    }
+
+    .status-item h4 {
+        color: #2e7d32;
+        margin-bottom: 10px;
+        font-size: 1.2em;
+    }
+
+    .status-item i {
+        color: #4caf50;
+        margin-right: 8px;
+    }
+
+    .status-info {
+        color: #1b5e20;
+        margin-bottom: 10px;
+        font-size: 1em;
+    }
+
+    .btn-primary {
+        background-color: #4caf50;
+        color: #ffffff;
+        padding: 10px 15px;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+        font-size: 1em;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+</style>
+{% endblock %}

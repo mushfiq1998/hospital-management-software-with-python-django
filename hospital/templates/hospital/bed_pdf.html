@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bed Detail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            font-size: 16px; /* Increased base font size */
+        }
+        h1 {
+            color: #1b5e20;
+            text-align: center;
+            border-bottom: 2px solid #4caf50;
+            padding-bottom: 10px;
+            font-size: 28px; /* Increased font size for h1 */
+        }
+        .bed-info {
+            background-color: #c8e6c9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #388e3c;
+            margin-top: 0;
+            font-size: 24px; /* Increased font size for h2 */
+        }
+        p {
+            margin: 10px 0;
+            font-size: 18px; /* Increased font size for paragraphs */
+        }
+        .bed-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px; /* Increased font size for bed status */
+        }
+        .occupied {
+            background-color: #f44336;
+            color: white;
+        }
+        .available {
+            background-color: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bed Detail</h1>
+    <div class="bed-info">
+        <h2>Bed Number: {{ bed.number }}</h2>
+        <p><strong>Ward:</strong> {{ bed.ward.name }}</p>
+        <p><strong>Status:</strong> 
+            <span class="bed-status {% if bed.is_occupied %}occupied{% else %}available{% endif %}">
+                {% if bed.is_occupied %}Occupied{% else %}Available{% endif %}
+            </span>
+        </p>
+        <p><strong>Patient:</strong> {{ bed.patient.name|default:"N/A" }}</p>
+    </div>
+</body>
+</html>
