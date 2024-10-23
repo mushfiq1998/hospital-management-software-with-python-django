@@ -64,6 +64,7 @@ class Doctor(models.Model):
     specialization = models.CharField(max_length=100, null=True, blank=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     photo = models.ImageField(upload_to='doctor_photos/', null=True, blank=True)
+    joining_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"Dr. {self.name}"
@@ -137,12 +138,26 @@ class PatientBilling(models.Model):
 
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='billings')
     billing_date = models.DateTimeField(default=timezone.now)
+    admission_date = models.DateTimeField(null=True, blank=True)
+    release_date = models.DateTimeField(null=True, blank=True)
+    daily_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='unpaid')
     description = models.TextField(blank=True)
 
     def __str__(self):
         return f"Billing for {self.patient.name} - {self.billing_date.date()}"
+
+    def calculate_total_amount(self):
+        if self.admission_date and self.release_date:
+            days = (self.release_date - self.admission_date).days
+            return self.daily_rate * days
+        return 0
+
+    def save(self, *args, **kwargs):
+        if not self.total_amount:
+            self.total_amount = self.calculate_total_amount()
+        super().save(*args, **kwargs)
 
 
 class Medication(models.Model):

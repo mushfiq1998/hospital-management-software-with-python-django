@@ -17,7 +17,10 @@ class EmployeeForm(forms.ModelForm):
 class DoctorForm(forms.ModelForm):
     class Meta:
         model = Doctor
-        fields = ['name', 'specialization', 'phone_number', 'photo']
+        fields = ['name', 'specialization', 'phone_number', 'photo', 'joining_date']
+        widgets = {
+            'joining_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class AppointmentForm(forms.ModelForm):
     class Meta:
@@ -67,10 +70,33 @@ class PayrollForm(forms.ModelForm):
 class PatientBillingForm(forms.ModelForm):
     class Meta:
         model = PatientBilling
-        fields = ['patient', 'total_amount', 'payment_status', 'description']
+        fields = ['patient', 'billing_date', 'admission_date', 'release_date', 
+                  'daily_rate', 'payment_status', 'description']
         widgets = {
-            'billing_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'patient': forms.Select(attrs={'class': 'form-select'}),
+            'billing_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'admission_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'release_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'daily_rate': forms.NumberInput(attrs={'class': 'form-control'}),
+            'payment_status': forms.Select(attrs={'class': 'form-select'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        admission_date = cleaned_data.get('admission_date')
+        release_date = cleaned_data.get('release_date')
+        daily_rate = cleaned_data.get('daily_rate')
+
+        if admission_date and release_date and release_date < admission_date:
+            raise forms.ValidationError("Release date cannot be earlier than admission date.")
+
+        if admission_date and release_date and daily_rate:
+            days = (release_date - admission_date).days
+            total_amount = days * daily_rate
+            cleaned_data['total_amount'] = total_amount
+
+        return cleaned_data
 
 class MedicationForm(forms.ModelForm):
     class Meta:

@@ -745,7 +745,9 @@ def patient_billing_add(request):
     if request.method == 'POST':
         form = PatientBillingForm(request.POST)
         if form.is_valid():
-            form.save()
+            billing = form.save(commit=False)
+            billing.total_amount = billing.calculate_total_amount()
+            billing.save()
             messages.success(request, 'Patient billing record added successfully.')
             return redirect('patient_billing_list')
     else:
@@ -758,7 +760,9 @@ def patient_billing_edit(request, pk):
     if request.method == 'POST':
         form = PatientBillingForm(request.POST, instance=billing)
         if form.is_valid():
-            form.save()
+            billing = form.save(commit=False)
+            billing.total_amount = billing.calculate_total_amount()
+            billing.save()
             messages.success(request, 'Patient billing record updated successfully.')
             return redirect('patient_billing_list')
     else:
@@ -1124,3 +1128,6 @@ def patient_serial_pdf(request, serial_id):
     if pisa_status.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
+
+

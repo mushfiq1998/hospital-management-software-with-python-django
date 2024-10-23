@@ -86,6 +86,7 @@
                 <th>Name</th>
                 <th>Specialization</th>
                 <th>Phone Number</th>
+                <th>Joining Date</th>
                 <th>Photo</th>
                 <th>Actions</th>
             </tr>
@@ -96,6 +97,7 @@
                     <td>Dr. {{ doctor.name }}</td>
                     <td>{{ doctor.specialization }}</td>
                     <td>{{ doctor.phone_number }}</td>
+                    <td>{{ doctor.joining_date|date:"F d, Y" }}</td>
                     <td>
                         {% if doctor.photo %}
                             <img src="{{ doctor.photo.url }}" alt="{{ doctor.name }}" class="doctor-photo">
@@ -111,11 +113,10 @@
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="5" style="text-align: center;">No doctors found.</td>
+                    <td colspan="6" style="text-align: center;">No doctors found.</td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 </body>
-</html>
 </html>

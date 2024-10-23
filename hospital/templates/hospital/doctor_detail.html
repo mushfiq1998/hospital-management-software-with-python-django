@@ -81,9 +81,10 @@
             <p><strong>Name:</strong> Dr. {{ doctor.name }}</p>
             <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
             <p><strong>Phone Number:</strong> {{ doctor.phone_number }}</p>
+            <p><strong>Joining Date:</strong> {{ doctor.joining_date|date:"F d, Y" }}</p>
         </div>
         <div class="button-container">
-            <a href="{% url 'doctor_pdf' doctor.id %}" class="btn btn-primary" target="_blank">
+            <a href="{% url 'doctor_pdf' doctor.id %}" class="btn btn-success btn-md" target="_blank" style="background-color: #28a745; border-color: #28a745; transition: all 0.3s; font-size: 1.2rem; padding: 10px 24px; color: white;">
                 <i class="fas fa-file-pdf"></i> Print PDF
             </a>
             <a href="{% url 'doctor_edit' doctor.pk %}" class="button">Edit</a>

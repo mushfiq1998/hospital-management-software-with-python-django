@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Dashboard</title>
+    <title>Hospital Management Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -257,10 +257,10 @@
                     <p>Manage patient billing and payment information.</p>
                     <div class="stats">
                         <span><i class="fas fa-money-bill-wave"></i>
-                             Total: ${{ total_billing|floatformat:2 }}
+                             Total: {{ total_billing|floatformat:2 }} TK
                         </span>
                         <span><i class="fas fa-exclamation-triangle"></i>
-                             Unpaid: ${{ unpaid_billing|floatformat:2 }}
+                             Unpaid: {{ unpaid_billing|floatformat:2 }} TK
                         </span>
                     </div>
                 </div>
@@ -306,6 +306,16 @@
                     </div>
                 </div>
                 <a href="{% url 'patient_serial_list' %}" class="card-link">View Patient Serials</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Financial Overview</div>
+                <div class="card-body">
+                    <div class="stats">
+                        <span>Total Billing: {{ total_billing|floatformat:2 }} TK</span>
+                        <span>Unpaid Billing: {{ unpaid_billing|floatformat:2 }} TK</span>
+                    </div>
+                </div>
             </div>
 
         </div>
