@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import LabTestListView, LabTestCreateView, LabTestUpdateView,\
+     LabTestDeleteView, LabTestDetailView
 
 urlpatterns = [
     # Registration URL
@@ -177,5 +179,25 @@ urlpatterns = [
     path('patient-serials/<int:serial_id>/pdf/', views.patient_serial_pdf, 
          name='patient_serial_pdf'),
 
+    # Lab Test URLs
+    path('lab-tests/', LabTestListView.as_view(), 
+         name='lab_test_list'),
+    path('lab-tests/add/', LabTestCreateView.as_view(), 
+         name='lab_test_add'),
+    path('lab-tests/<int:pk>/', LabTestDetailView.as_view(), 
+         name='lab_test_detail'),
+    path('lab-tests/<int:pk>/edit/', LabTestUpdateView.as_view(), 
+         name='lab_test_edit'),
+    path('lab-tests/<int:pk>/delete/', LabTestDeleteView.as_view(), 
+         name='lab_test_delete'),
+    path('lab-tests/<int:pk>/complete/', views.complete_lab_test, 
+         name='complete_lab_test'),
+    path('lab-tests/<int:lab_test_id>/pdf/', views.lab_test_pdf, 
+         name='lab_test_pdf'),
+    path('opd/appointments/', views.opd_appointment_list, name='opd_appointment_list'),
+    path('opd/appointments/<int:pk>/', views.opd_appointment_detail, name='opd_appointment_detail'),
+    path('opd/appointments/create/', views.opd_appointment_create, name='opd_appointment_create'),
+    path('ipd/admissions/', views.ipd_admission_list, name='ipd_admission_list'),
+    path('ipd/admissions/<int:pk>/', views.ipd_admission_detail, name='ipd_admission_detail'),
+    path('ipd/admissions/create/', views.ipd_admission_create, name='ipd_admission_create'),
 ]
-

@@ -60,14 +60,12 @@ class Patient(models.Model):
 
 
 class Doctor(models.Model):
-    name = models.CharField(max_length=200)
-    specialization = models.CharField(max_length=100, null=True, blank=True)
-    phone_number = models.CharField(max_length=15, null=True, blank=True)
-    photo = models.ImageField(upload_to='doctor_photos/', null=True, blank=True)
-    joining_date = models.DateField(null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True)
+    specialization = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"Dr. {self.name}"
+        return f"Dr. {self.user.get_full_name()}"
 
     def get_absolute_url(self):
         return reverse('doctor_detail', args=[str(self.id)])
@@ -281,3 +279,58 @@ class PatientSerial(models.Model):
     @property
     def get_status_display(self):
         return dict(self.STATUS_CHOICES)[self.status]
+
+
+class LabTest(models.Model):
+    TEST_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+    ]
+
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='lab_tests')
+    test_name = models.CharField(max_length=200)
+    test_description = models.TextField(blank=True)
+    date_ordered = models.DateTimeField(auto_now_add=True)
+    date_completed = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=TEST_STATUS_CHOICES, default='pending')
+    results = models.TextField(blank=True)
+    doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, related_name='ordered_tests')
+
+    def __str__(self):
+        return f"{self.test_name} for {self.patient.name}"
+
+class Department(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+class OPDAppointment(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    appointment_date = models.DateTimeField()
+    reason = models.TextField()
+    status = models.CharField(max_length=20, choices=[
+        ('scheduled', 'Scheduled'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ], default='scheduled')
+
+    def __str__(self):
+        return f"{self.patient} - {self.doctor} - {self.appointment_date}"
+
+class IPDAdmission(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    admission_date = models.DateTimeField()
+    discharge_date = models.DateTimeField(null=True, blank=True)
+    reason = models.TextField()
+    status = models.CharField(max_length=20, choices=[
+        ('admitted', 'Admitted'),
+        ('discharged', 'Discharged'),
+    ], default='admitted')
+
+    def __str__(self):
+        return f"{self.patient} - {self.doctor} - {self.admission_date}"

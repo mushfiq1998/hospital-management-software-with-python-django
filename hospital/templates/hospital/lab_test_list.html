@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f5e9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #2e7d32;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn-add, .btn-back {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .btn-back {
+            background-color: #4caf50;
+            float: right;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4caf50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .btn {
+            padding: 5px 10px;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .btn-info { background-color: #4caf50; }
+        .btn-warning { background-color: #4caf50; }
+        .btn-danger { background-color: #4caf50; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Lab Tests</h2>
+        <a href="{% url 'lab_test_add' %}" class="btn-add">Add New Lab Test</a>
+        <a href="{% url 'dashboard' %}" class="btn-back">Back to Dashboard</a>
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Test Name</th>
+                    <th>Date Ordered</th>
+                    <th>Date Completed</th>
+                    <th>Status</th>
+                    <th>Results</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in lab_tests %}
+                <tr>
+                    <td>{{ test.patient.name }}</td>
+                    <td>{{ test.doctor.name }}</td>
+                    <td>{{ test.test_name }}</td>
+                    <td>{{ test.date_ordered }}</td>
+                    <td>{{ test.date_completed }}</td>
+                    <td>{{ test.get_status_display }}</td>
+                    <td>{{ test.results }}</td>
+                    <td>
+                        <a href="{% url 'lab_test_detail' test.pk %}" class="btn btn-info">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        &nbsp;
+                        <a href="{% url 'lab_test_edit' test.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        &nbsp;
+                        <a href="{% url 'lab_test_delete' test.pk %}" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9">No lab tests found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

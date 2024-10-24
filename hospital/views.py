@@ -1,14 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from .models import Patient, Employee, Doctor, Appointment, Ward, Bed,\
-      OTBooking, Payroll, PatientBilling, Medication, Prescription, Ambulance, AmbulanceAssignment, Communication
+      OTBooking, Payroll, PatientBilling, Medication, Prescription,\
+      Ambulance, AmbulanceAssignment, Communication, LabTest, OPDAppointment, IPDAdmission
 from .forms import PatientForm, EmployeeForm, DoctorForm, AppointmentForm, \
-WardForm, BedForm, OTBookingForm, PatientBillingForm, MedicationForm, PrescriptionForm, AmbulanceForm, AmbulanceAssignmentForm, CommunicationForm
+WardForm, BedForm, OTBookingForm, PatientBillingForm, MedicationForm,\
+      PrescriptionForm, AmbulanceForm, AmbulanceAssignmentForm,\
+          CommunicationForm, LabTestForm, OPDAppointmentForm, IPDAdmissionForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.views.generic import DeleteView, ListView, CreateView, UpdateView, DetailView
+from django.views.generic import DeleteView, ListView, CreateView, \
+    UpdateView, DetailView
 from django.utils import timezone
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
@@ -27,6 +31,11 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 from io import BytesIO
 from .models import Appointment
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import LabTest
+from .forms import LabTestForm
 
 # Dashboard View
 @login_required
@@ -1129,5 +1138,71 @@ def patient_serial_pdf(request, serial_id):
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
 
+class LabTestListView(LoginRequiredMixin, ListView):
+    model = LabTest
+    template_name = 'hospital/lab_test_list.html'
+    context_object_name = 'lab_tests'
+    
+    def get_queryset(self):
+        return LabTest.objects.all().order_by('-date_ordered')
+
+class LabTestCreateView(LoginRequiredMixin, CreateView):
+    model = LabTest
+    form_class = LabTestForm
+    template_name = 'hospital/lab_test_form.html'
+    success_url = reverse_lazy('lab_test_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Lab test created successfully.')
+        return super().form_valid(form)
+
+class LabTestUpdateView(LoginRequiredMixin, UpdateView):
+    model = LabTest
+    form_class = LabTestForm
+    template_name = 'hospital/lab_test_form.html'
+    success_url = reverse_lazy('lab_test_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Lab test updated successfully.')
+        return super().form_valid(form)
+
+class LabTestDeleteView(LoginRequiredMixin, DeleteView):
+    model = LabTest
+    template_name = 'hospital/lab_test_confirm_delete.html'
+    success_url = reverse_lazy('lab_test_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Lab test deleted successfully.')
+        return super().delete(request, *args, **kwargs)
+
+class LabTestDetailView(LoginRequiredMixin, DetailView):
+    model = LabTest
+    template_name = 'hospital/lab_test_detail.html'
+    context_object_name = 'lab_test'
+
+@login_required
+def complete_lab_test(request, pk):
+    lab_test = get_object_or_404(LabTest, pk=pk)
+    if lab_test.status != 'completed':
+        lab_test.status = 'completed'
+        lab_test.date_completed = timezone.now()
+        lab_test.save()
+        messages.success(request, 'Lab test marked as completed.')
+    return redirect('lab_test_detail', pk=pk)
 
 
+def lab_test_pdf(request, lab_test_id):
+    lab_test = get_object_or_404(LabTest, id=lab_test_id)
+    template_path = 'hospital/lab_test_pdf.html'
+    context = {'lab_test': lab_test}
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="lab_test_{lab_test_id}.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response

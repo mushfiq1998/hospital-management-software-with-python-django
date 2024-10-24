@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>IPD Admissions</h1>
+<a href="{% url 'ipd_admission_create' %}" class="btn btn-primary">Create New Admission</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Admission Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for admission in admissions %}
+        <tr>
+            <td>{{ admission.patient }}</td>
+            <td>{{ admission.doctor }}</td>
+            <td>{{ admission.admission_date }}</td>
+            <td>{{ admission.status }}</td>
+            <td>
+                <a href="{% url 'ipd_admission_detail' admission.pk %}" class="btn btn-sm btn-info">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

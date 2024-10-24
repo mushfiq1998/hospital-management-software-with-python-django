@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>OPD Appointment Details</h1>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">{{ appointment.patient }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">{{ appointment.doctor }}</h6>
+        <p class="card-text">
+            <strong>Date:</strong> {{ appointment.appointment_date }}<br>
+            <strong>Reason:</strong> {{ appointment.reason }}<br>
+            <strong>Status:</strong> {{ appointment.status }}
+        </p>
+        <a href="{% url 'opd_appointment_list' %}" class="btn btn-primary">Back to List</a>
+    </div>
+</div>
+{% endblock %}

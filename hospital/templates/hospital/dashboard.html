@@ -318,6 +318,19 @@
                 </div>
             </div>
 
+            <!-- Add this card to your dashboard grid -->
+            <div class="card">
+                <div class="card-header">Laboratory Management</div>
+                <div class="card-body">
+                    <div class="card-icon"><i class="fas fa-flask"></i></div>
+                    <p>Manage laboratory tests and results.</p>
+                    <div class="stats">
+                        <span><i class="fas fa-vial"></i> Lab Tests</span>
+                    </div>
+                </div>
+                <a href="{% url 'lab_test_list' %}" class="card-link">View Lab Tests</a>
+            </div>
+
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

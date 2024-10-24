@@ -1,5 +1,5 @@
 from django import forms
-from .models import Patient, Employee, Doctor, Appointment, Ward, Bed, OTBooking, Payroll, PatientBilling, Medication, Prescription, PrescriptionItem, Ambulance, AmbulanceAssignment, Communication, PatientSerial
+from .models import Patient, Employee, Doctor, Appointment, Ward, Bed, OTBooking, Payroll, PatientBilling, Medication, Prescription, PrescriptionItem, Ambulance, AmbulanceAssignment, Communication, PatientSerial, LabTest, OPDAppointment, IPDAdmission
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 
@@ -146,4 +146,29 @@ class PatientSerialForm(forms.ModelForm):
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'serial_number': forms.NumberInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+class LabTestForm(forms.ModelForm):
+    class Meta:
+        model = LabTest
+        fields = ['patient', 'test_name', 'test_description', 'doctor', 'status', 'results']
+        widgets = {
+            'test_description': forms.Textarea(attrs={'rows': 3}),
+            'results': forms.Textarea(attrs={'rows': 5}),
+        }
+
+class OPDAppointmentForm(forms.ModelForm):
+    class Meta:
+        model = OPDAppointment
+        fields = ['patient', 'doctor', 'appointment_date', 'reason']
+        widgets = {
+            'appointment_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+
+class IPDAdmissionForm(forms.ModelForm):
+    class Meta:
+        model = IPDAdmission
+        fields = ['patient', 'doctor', 'admission_date', 'reason']
+        widgets = {
+            'admission_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
