@@ -60,18 +60,32 @@ class Patient(models.Model):
 
 
 class Doctor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True)
-    specialization = models.CharField(max_length=100)
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE,
+                        related_name='doctor', blank=True, null=True)
+    specialization = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"Dr. {self.user.get_full_name()}"
+        return self.get_name()
 
-    def get_absolute_url(self):
-        return reverse('doctor_detail', args=[str(self.id)])
+    def get_name(self):
+        if self.employee:
+            return f"Dr. {self.employee.name}"
+        return "Doctor (No Name)"
 
-    def get_pdf_url(self):
-        return reverse('doctor_detail_pdf', args=[str(self.id)])
+    def get_phone(self):
+        if self.employee:
+            return self.employee.phone_number
+        return None
+
+    def get_joining_date(self):
+        if self.employee:
+            return self.employee.joining_date
+        return None
+
+    def get_photo_url(self):
+        if self.employee and self.employee.photo:
+            return self.employee.photo.url
+        return None
 
 
 class Appointment(models.Model):
@@ -82,7 +96,7 @@ class Appointment(models.Model):
     reason = models.TextField()
 
     def __str__(self):
-        return f"{self.patient.name} - {self.doctor.name} - {self.date} {self.time}"
+        return f"{self.patient.name} - {self.doctor.get_name()} - {self.date} {self.time}"
 
 
 class OTBooking(models.Model):
@@ -274,7 +288,9 @@ class PatientSerial(models.Model):
         ]
 
     def __str__(self):
-        return f"Serial {self.serial_number} - {self.patient.name} - Dr. {self.doctor.name}"
+        patient_name = self.patient.name if self.patient else "No Patient"
+        doctor_name = self.doctor.get_name() if self.doctor else "No Doctor"
+        return f"Serial {self.serial_number} - {patient_name} - {doctor_name}"
 
     @property
     def get_status_display(self):

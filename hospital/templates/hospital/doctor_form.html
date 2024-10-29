@@ -22,53 +22,115 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
         }
         h1 {
             color: #4CAF50;
             text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-group {
             margin-bottom: 20px;
         }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
         label {
-            margin-top: 10px;
-            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
             color: #333;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         input[type="text"],
-        input[type="file"],
-        select {
+        input[type="email"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="date"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+        }
+        input[type="file"] {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #f8f9fa;
         }
-        button {
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        .submit-btn, .cancel-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .submit-btn {
             background-color: #4CAF50;
             color: white;
-            border: none;
-            padding: 12px 20px;
-            margin-top: 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
         }
-        button:hover {
+        .submit-btn:hover {
             background-color: #45a049;
         }
-        input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
+        .cancel-btn {
+            background-color: #f8f9fa;
+            color: #333;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
+        }
+        .cancel-btn:hover {
+            background-color: #e9ecef;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .help-text {
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .form-section {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .form-section-title {
+            color: #4CAF50;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -77,17 +139,74 @@
         <h1>{{ form.instance.pk|yesno:"Edit Doctor,Add Doctor" }}</h1>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {% for field in form %}
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                    <small style="color: #666;">{{ field.help_text }}</small>
-                {% endif %}
-                {% for error in field.errors %}
-                    <p style="color: red;">{{ error }}</p>
-                {% endfor %}
-            {% endfor %}
-            <button type="submit">Save</button>
+            
+            <div class="form-section">
+                <div class="form-section-title">Personal Information</div>
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">Name*</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        {% for error in form.name.errors %}
+                            <p class="error-message">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.specialization.id_for_label }}">Specialization</label>
+                    {{ form.specialization }}
+                    {% if form.specialization.help_text %}
+                        <small class="help-text">{{ form.specialization.help_text }}</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Contact Information</div>
+                <div class="form-group">
+                    <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+                    {{ form.phone_number }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">Email</label>
+                    {{ form.email }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Employment Details</div>
+                <div class="form-group">
+                    <label for="{{ form.position.id_for_label }}">Position</label>
+                    {{ form.position }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.department.id_for_label }}">Department</label>
+                    {{ form.department }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.joining_date.id_for_label }}">Joining Date</label>
+                    {{ form.joining_date }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Profile Photo</div>
+                <div class="form-group">
+                    <label for="{{ form.photo.id_for_label }}">Photo</label>
+                    {{ form.photo }}
+                    {% if form.photo.help_text %}
+                        <small class="help-text">{{ form.photo.help_text }}</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="submit-btn">Save Doctor</button>
+                <a href="{% url 'doctor_list' %}" class="cancel-btn">Cancel</a>
+            </div>
         </form>
     </div>
 </body>

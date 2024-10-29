@@ -72,16 +72,17 @@
 <body>
     <div class="container">
         <h1>Doctor Details</h1>
-        {% if doctor.photo %}
-            <img src="{{ doctor.photo.url }}" alt="{{ doctor.name }}" class="doctor-photo">
+        {% if doctor.employee.photo %}
+            <img src="{{ doctor.employee.photo.url }}" alt="{{ doctor.employee.name }}" class="doctor-photo">
         {% else %}
             <div class="no-photo">No photo available</div>
         {% endif %}
         <div class="doctor-info">
-            <p><strong>Name:</strong> Dr. {{ doctor.name }}</p>
+            <p><strong>Name:</strong> Dr. {{ doctor.employee.name }}</p>
             <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
-            <p><strong>Phone Number:</strong> {{ doctor.phone_number }}</p>
-            <p><strong>Joining Date:</strong> {{ doctor.joining_date|date:"F d, Y" }}</p>
+            <p><strong>Phone Number:</strong> {{ doctor.employee.phone_number }}</p>
+            <p><strong>Joining Date:</strong> {{ doctor.employee.joining_date|date:"F d, Y" }}</p>
+            <p><strong>Department:</strong> {{ doctor.department.name }}</p>
         </div>
         <div class="button-container">
             <a href="{% url 'doctor_pdf' doctor.id %}" class="btn btn-success btn-md" target="_blank" style="background-color: #28a745; border-color: #28a745; transition: all 0.3s; font-size: 1.2rem; padding: 10px 24px; color: white;">

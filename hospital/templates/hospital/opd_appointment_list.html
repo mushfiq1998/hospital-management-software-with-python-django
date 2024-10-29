@@ -1,30 +1,135 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<h1>OPD Appointments</h1>
-<a href="{% url 'opd_appointment_create' %}" class="btn btn-primary">Create New Appointment</a>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Patient</th>
-            <th>Doctor</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for appointment in appointments %}
-        <tr>
-            <td>{{ appointment.patient }}</td>
-            <td>{{ appointment.doctor }}</td>
-            <td>{{ appointment.appointment_date }}</td>
-            <td>{{ appointment.status }}</td>
-            <td>
-                <a href="{% url 'opd_appointment_detail' appointment.pk %}" class="btn btn-sm btn-info">View</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPD Appointments</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f5e9; /* Lighter green background */
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #2e8b57;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2e8b57;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #1a5733;
+        }
+        .btn-dashboard {
+            background-color: #4a90e2;
+        }
+        .btn-dashboard:hover {
+            background-color: #357abd;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 128, 0, 0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #2e8b57;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f8e9; /* Lighter green hover */
+        }
+        a {
+            color: #2e8b57;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .action-links a {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .view-link {
+            background-color: #2e8b57;
+            color: white;
+        }
+        .edit-link {
+            background-color: #2e8b57;
+            color: white;
+        }
+        .delete-link {
+            background-color: #2e8b57;
+            color: white;
+        }
+        .action-links a:hover {
+            text-decoration: none;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1>OPD Appointments</h1>
+    <div class="btn-container">
+        <a href="{% url 'opd_appointment_create' %}" class="btn" style="background-color: #2e8b57; color: white;">
+            Create New Appointment
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-dashboard" style="background-color: #2e8b57; color: white;">
+            Back to Dashboard
+        </a>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.patient.name }}</td>
+                <td>{{ appointment.doctor.get_name }}</td>
+                <td>{{ appointment.appointment_date }}</td>
+                <td>{{ appointment.get_status_display }}</td>
+                <td class="action-links">
+                    <a href="{% url 'opd_appointment_detail' appointment.pk %}" class="view-link">View</a>
+                    {% if appointment.status == 'scheduled' %}
+                        <a href="{% url 'opd_appointment_edit' appointment.pk %}" class="edit-link">Edit</a>
+                        <a href="{% url 'opd_appointment_delete' appointment.pk %}" class="delete-link" 
+                           onclick="return confirm('Are you sure you want to delete this appointment?')">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No appointments found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

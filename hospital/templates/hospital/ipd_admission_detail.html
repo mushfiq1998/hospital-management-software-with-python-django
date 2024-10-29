@@ -1,18 +1,1 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<h1>IPD Admission Details</h1>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">{{ admission.patient }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{ admission.doctor }}</h6>
-        <p class="card-text">
-            <strong>Admission Date:</strong> {{ admission.admission_date }}<br>
-            <strong>Discharge Date:</strong> {{ admission.discharge_date|default:"Not discharged" }}<br>
-            <strong>Reason:</strong> {{ admission.reason }}<br>
-            <strong>Status:</strong> {{ admission.status }}
-        </p>
-        <a href="{% url 'ipd_admission_list' %}" class="btn btn-primary">Back to List</a>
-    </div>
-</div>
-{% endblock %}
+ 

@@ -119,6 +119,63 @@
         .account-management-link:hover {
             background-color: #45a049;
         }
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h3 {
+            color: white;
+            margin-top: 0;
+            text-align: center;
+            background-color: #4CAF50;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .card-content {
+            margin: 15px 0;
+            text-align: center;
+        }
+        .card-stats {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+        }
+        .card-actions {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .card-actions a {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .card-actions a:hover {
+            background-color: #45a049;
+        }
+        /* Updated colors for OPD and IPD cards */
+        .card.opd {
+            border-left: 4px solid #4CAF50;
+        }
+        .card.ipd {
+            border-left: 4px solid #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -329,6 +386,44 @@
                     </div>
                 </div>
                 <a href="{% url 'lab_test_list' %}" class="card-link">View Lab Tests</a>
+            </div>
+
+            <!-- OPD Management Card -->
+            <div class="card opd">
+                <h3>OPD Management</h3>
+                <div class="card-content">
+                    <div class="card-stats">
+                        {{ opd_appointments_count }}
+                    </div>
+                    <p>Total OPD Appointments</p>
+                    <div class="card-stats">
+                        {{ today_opd_appointments_count }}
+                    </div>
+                    <p>Today's Appointments</p>
+                </div>
+                <div class="card-actions">
+                    <a href="{% url 'opd_appointment_list' %}">View All</a>
+                    <a href="{% url 'opd_appointment_create' %}">New Appointment</a>
+                </div>
+            </div>
+
+            <!-- IPD Management Card -->
+            <div class="card ipd">
+                <h3>IPD Management</h3>
+                <div class="card-content">
+                    <div class="card-stats">
+                        {{ ipd_admissions_count }}
+                    </div>
+                    <p>Total Admissions</p>
+                    <div class="card-stats">
+                        {{ current_ipd_admissions_count }}
+                    </div>
+                    <p>Current Admissions</p>
+                </div>
+                <div class="card-actions">
+                    <a href="{% url 'ipd_admission_list' %}">View All</a>
+                    <a href="{% url 'ipd_admission_create' %}">New Admission</a>
+                </div>
             </div>
 
         </div>

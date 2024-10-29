@@ -63,6 +63,19 @@ def dashboard(request):
     today = timezone.now().date()
     patient_serials_count = PatientSerial.objects.filter(date=today).count()
     
+    # Add OPD statistics
+    today = timezone.now().date()
+    opd_appointments_count = OPDAppointment.objects.count()
+    today_opd_appointments_count = OPDAppointment.objects.filter(
+        appointment_date__date=today
+    ).count()
+
+    # Add IPD statistics
+    ipd_admissions_count = IPDAdmission.objects.count()
+    current_ipd_admissions_count = IPDAdmission.objects.filter(
+        status='admitted'
+    ).count()
+
     context = {
         'employees_count': employees_count,
         'patients_count': patients_count,
@@ -80,6 +93,10 @@ def dashboard(request):
         'unpaid_billing': unpaid_billing,
         'ambulances_count': ambulances_count,  # Add this line
         'patient_serials_count': patient_serials_count,
+        'opd_appointments_count': opd_appointments_count,
+        'today_opd_appointments_count': today_opd_appointments_count,
+        'ipd_admissions_count': ipd_admissions_count,
+        'current_ipd_admissions_count': current_ipd_admissions_count,
     }
     return render(request, 'hospital/dashboard.html', context)
 
@@ -1206,3 +1223,71 @@ def lab_test_pdf(request, lab_test_id):
     if pisa_status.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
+# Add these views for OPD Appointments
+@login_required
+def opd_appointment_list(request):
+    appointments = OPDAppointment.objects.all().order_by('-appointment_date')
+    return render(request, 'hospital/opd_appointment_list.html', {'appointments': appointments})
+
+@login_required
+def opd_appointment_detail(request, pk):
+    appointment = get_object_or_404(OPDAppointment, pk=pk)
+    return render(request, 'hospital/opd_appointment_detail.html', {'appointment': appointment})
+
+@login_required
+def opd_appointment_create(request):
+    if request.method == 'POST':
+        form = OPDAppointmentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'OPD Appointment created successfully.')
+            return redirect('opd_appointment_list')
+    else:
+        form = OPDAppointmentForm()
+    return render(request, 'hospital/opd_appointment_form.html', {'form': form})
+
+@login_required
+def opd_appointment_edit(request, pk):
+    appointment = get_object_or_404(OPDAppointment, pk=pk)
+    if request.method == 'POST':
+        form = OPDAppointmentForm(request.POST, instance=appointment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'OPD Appointment updated successfully.')
+            return redirect('opd_appointment_list')
+    else:
+        form = OPDAppointmentForm(instance=appointment)
+    return render(request, 'hospital/opd_appointment_form.html', {'form': form})
+
+@login_required
+def opd_appointment_delete(request, pk):
+    appointment = get_object_or_404(OPDAppointment, pk=pk)
+    if request.method == 'POST':
+        appointment.delete()
+        messages.success(request, 'OPD Appointment deleted successfully.')
+        return redirect('opd_appointment_list')
+    return render(request, 'hospital/opd_appointment_confirm_delete.html', {'appointment': appointment})
+
+# Add these views for IPD Admissions
+@login_required
+def ipd_admission_list(request):
+    admissions = IPDAdmission.objects.all().order_by('-admission_date')
+    return render(request, 'hospital/ipd_admission_list.html', {'admissions': admissions})
+
+@login_required
+def ipd_admission_detail(request, pk):
+    admission = get_object_or_404(IPDAdmission, pk=pk)
+    return render(request, 'hospital/ipd_admission_detail.html', {'admission': admission})
+
+@login_required
+def ipd_admission_create(request):
+    if request.method == 'POST':
+        form = IPDAdmissionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'IPD Admission created successfully.')
+            return redirect('ipd_admission_list')
+    else:
+        form = IPDAdmissionForm()
+    return render(request, 'hospital/ipd_admission_form.html', {'form': form})

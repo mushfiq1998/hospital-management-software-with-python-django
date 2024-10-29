@@ -1,17 +1,121 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<h1>OPD Appointment Details</h1>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">{{ appointment.patient }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{ appointment.doctor }}</h6>
-        <p class="card-text">
-            <strong>Date:</strong> {{ appointment.appointment_date }}<br>
-            <strong>Reason:</strong> {{ appointment.reason }}<br>
-            <strong>Status:</strong> {{ appointment.status }}
-        </p>
-        <a href="{% url 'opd_appointment_list' %}" class="btn btn-primary">Back to List</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPD Appointment Detail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0fff0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 128, 0, 0.1);
+        }
+        h1 {
+            color: #2e8b57;
+            text-align: center;
+        }
+        .detail-group {
+            margin-bottom: 15px;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .detail-value {
+            margin-top: 5px;
+            color: #666;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+        }
+        .status.scheduled {
+            background-color: #2e8b57;
+        }
+        .status.completed {
+            background-color: #228b22;
+        }
+        .status.cancelled {
+            background-color: #006400;
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #2e8b57;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: #228b22;
+        }
+        .button.delete {
+            background-color: #006400;
+        }
+        .button.delete:hover {
+            background-color: #004d00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OPD Appointment Detail</h1>
+        
+        <div class="detail-group">
+            <div class="detail-label">Patient</div>
+            <div class="detail-value">{{ appointment.patient.name }}</div>
+        </div>
+        
+        <div class="detail-group">
+            <div class="detail-label">Doctor</div>
+            <div class="detail-value">{{ appointment.doctor.get_name }}</div>
+        </div>
+        
+        <div class="detail-group">
+            <div class="detail-label">Appointment Date & Time</div>
+            <div class="detail-value">{{ appointment.appointment_date }}</div>
+        </div>
+        
+        <div class="detail-group">
+            <div class="detail-label">Reason</div>
+            <div class="detail-value">{{ appointment.reason }}</div>
+        </div>
+        
+        <div class="detail-group">
+            <div class="detail-label">Status</div>
+            <div class="detail-value">
+                <span class="status {{ appointment.status }}">
+                    {{ appointment.get_status_display }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <a href="{% url 'opd_appointment_list' %}" class="button">Back to List</a>
+            {% if appointment.status == 'scheduled' %}
+                <a href="#" class="button">Edit</a>
+                <a href="#" class="button delete">Cancel</a>
+            {% endif %}
+        </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

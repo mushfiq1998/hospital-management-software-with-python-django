@@ -15,12 +15,52 @@ class EmployeeForm(forms.ModelForm):
         fields = ['name', 'position', 'department', 'phone_number', 'email', 'photo']
 
 class DoctorForm(forms.ModelForm):
+    name = forms.CharField(max_length=100, required=True)
+    position = forms.CharField(max_length=100, required=False)
+    department = forms.CharField(max_length=100, required=False)
+    phone_number = forms.CharField(max_length=15, required=False)
+    email = forms.EmailField(required=False)
+    photo = forms.ImageField(required=False)
+    joining_date = forms.DateField(required=False)
+
     class Meta:
         model = Doctor
-        fields = ['name', 'specialization', 'phone_number', 'photo', 'joining_date']
-        widgets = {
-            'joining_date': forms.DateInput(attrs={'type': 'date'}),
-        }
+        fields = ['specialization']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.employee:
+            self.fields['name'].initial = self.instance.employee.name
+            self.fields['position'].initial = self.instance.employee.position
+            self.fields['department'].initial = self.instance.employee.department
+            self.fields['phone_number'].initial = self.instance.employee.phone_number
+            self.fields['email'].initial = self.instance.employee.email
+            self.fields['joining_date'].initial = self.instance.employee.joining_date
+
+    def save(self, commit=True):
+        doctor = super().save(commit=False)
+        
+        if doctor.employee:
+            employee = doctor.employee
+        else:
+            employee = Employee()
+        
+        employee.name = self.cleaned_data['name']
+        employee.position = self.cleaned_data['position']
+        employee.department = self.cleaned_data['department']
+        employee.phone_number = self.cleaned_data['phone_number']
+        employee.email = self.cleaned_data['email']
+        employee.joining_date = self.cleaned_data['joining_date']
+        
+        if 'photo' in self.cleaned_data and self.cleaned_data['photo']:
+            employee.photo = self.cleaned_data['photo']
+        
+        if commit:
+            employee.save()
+            doctor.employee = employee
+            doctor.save()
+        
+        return doctor
 
 class AppointmentForm(forms.ModelForm):
     class Meta:
@@ -160,10 +200,32 @@ class LabTestForm(forms.ModelForm):
 class OPDAppointmentForm(forms.ModelForm):
     class Meta:
         model = OPDAppointment
-        fields = ['patient', 'doctor', 'appointment_date', 'reason']
+        fields = ['patient', 'doctor', 'appointment_date', 'reason', 'status']
         widgets = {
             'appointment_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get all doctors with their employee information
+        doctors = Doctor.objects.select_related('employee').all()
+        
+        # Create choices list with proper formatting
+        doctor_choices = []
+        for doctor in doctors:
+            if doctor.employee:
+                name = f"Dr. {doctor.employee.name} - {doctor.specialization or 'No Specialization'}"
+            else:
+                name = f"Doctor - {doctor.specialization or 'No Specialization'}"
+            doctor_choices.append((doctor.id, name))
+        
+        # Set the choices for the doctor field if any exist
+        if doctor_choices:
+            self.fields['doctor'].choices = doctor_choices
+        
+        # Set the label_from_instance for patient field
+        self.fields['patient'].label_from_instance = lambda obj: obj.name if obj else "No Name"
 
 class IPDAdmissionForm(forms.ModelForm):
     class Meta:
