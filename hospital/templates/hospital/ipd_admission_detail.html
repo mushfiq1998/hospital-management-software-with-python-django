@@ -189,11 +189,14 @@
             {% endif %}
 
             <div class="action-buttons">
-                <a href="{% url 'ipd_admission_edit' admission.pk %}" class="btn btn-primary">
+                <a href="{% url 'ipd_admission_pdf' admission.id %}" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-file-pdf me-2"></i>Print PDF
+                </a>
+                <a href="{% url 'ipd_admission_edit' admission.pk %}" class="btn btn-primary" style="margin-right: 10px; margin-bottom: 10px; display: inline-block;">
                     <i class="fas fa-edit"></i> Edit Admission
                 </a>
                 {% if admission.status == 'admitted' %}
-                <a href="{% url 'ipd_admission_discharge' admission.pk %}" class="btn btn-danger">
+                <a href="{% url 'ipd_admission_discharge' admission.pk %}" class="btn btn-danger" style="margin-bottom: 10px; display: inline-block;">
                     <i class="fas fa-door-open"></i> Discharge Patient
                 </a>
                 {% endif %}

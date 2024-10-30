@@ -1224,12 +1224,14 @@ def lab_test_pdf(request, lab_test_id):
 @login_required
 def opd_appointment_list(request):
     appointments = OPDAppointment.objects.all().order_by('-appointment_date')
-    return render(request, 'hospital/opd_appointment_list.html', {'appointments': appointments})
+    return render(request, 'hospital/opd_appointment_list.html', 
+                  {'appointments': appointments})
 
 @login_required
 def opd_appointment_detail(request, pk):
     appointment = get_object_or_404(OPDAppointment, pk=pk)
-    return render(request, 'hospital/opd_appointment_detail.html', {'appointment': appointment})
+    return render(request, 'hospital/opd_appointment_detail.html', 
+                  {'appointment': appointment})
 
 @login_required
 def opd_appointment_create(request):
@@ -1263,13 +1265,33 @@ def opd_appointment_delete(request, pk):
         appointment.delete()
         messages.success(request, 'OPD Appointment deleted successfully.')
         return redirect('opd_appointment_list')
-    return render(request, 'hospital/opd_appointment_confirm_delete.html', {'appointment': appointment})
+    return render(request, 'hospital/opd_appointment_confirm_delete.html', 
+                  {'appointment': appointment})
+
+
+def opd_appointment_pdf(request, appointment_id):
+    appointment = get_object_or_404(OPDAppointment, id=appointment_id)
+    template_path = 'hospital/opd_appointment_pdf.html'
+    context = {'appointment': appointment}
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="opd_appointment_{appointment_id}.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
 
 # Add these view functions to your views.py
 @login_required
 def ipd_admission_list(request):
     admissions = IPDAdmission.objects.all().order_by('-admission_date')
-    return render(request, 'hospital/ipd_admission_list.html', {'admissions': admissions})
+    return render(request, 'hospital/ipd_admission_list.html', 
+                  {'admissions': admissions})
 
 @login_required
 def ipd_admission_create(request):
@@ -1337,3 +1359,20 @@ def ipd_admission_discharge(request, pk):
         admission.save()
         messages.success(request, f'Patient {admission.patient.name} has been discharged.')
     return redirect('ipd_admission_detail', pk=admission.pk)
+
+
+def ipd_admission_pdf(request, admission_id):
+    admission = get_object_or_404(IPDAdmission, id=admission_id)
+    template_path = 'hospital/ipd_admission_pdf.html'
+    context = {'admission': admission}
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="ipd_admission_{admission_id}.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
