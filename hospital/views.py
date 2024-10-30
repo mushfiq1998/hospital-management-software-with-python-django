@@ -71,11 +71,8 @@ def dashboard(request):
     ).count()
 
     # Add IPD statistics
-    ipd_admissions_count = IPDAdmission.objects.count()
-    current_ipd_admissions_count = IPDAdmission.objects.filter(
-        status='admitted'
-    ).count()
-
+    ipd_admissions_count = IPDAdmission.objects.filter(status='admitted').count()
+    
     context = {
         'employees_count': employees_count,
         'patients_count': patients_count,
@@ -96,7 +93,6 @@ def dashboard(request):
         'opd_appointments_count': opd_appointments_count,
         'today_opd_appointments_count': today_opd_appointments_count,
         'ipd_admissions_count': ipd_admissions_count,
-        'current_ipd_admissions_count': current_ipd_admissions_count,
     }
     return render(request, 'hospital/dashboard.html', context)
 
@@ -1269,25 +1265,75 @@ def opd_appointment_delete(request, pk):
         return redirect('opd_appointment_list')
     return render(request, 'hospital/opd_appointment_confirm_delete.html', {'appointment': appointment})
 
-# Add these views for IPD Admissions
+# Add these view functions to your views.py
 @login_required
 def ipd_admission_list(request):
     admissions = IPDAdmission.objects.all().order_by('-admission_date')
     return render(request, 'hospital/ipd_admission_list.html', {'admissions': admissions})
 
 @login_required
-def ipd_admission_detail(request, pk):
-    admission = get_object_or_404(IPDAdmission, pk=pk)
-    return render(request, 'hospital/ipd_admission_detail.html', {'admission': admission})
-
-@login_required
 def ipd_admission_create(request):
     if request.method == 'POST':
         form = IPDAdmissionForm(request.POST)
         if form.is_valid():
-            form.save()
+            admission = form.save(commit=False)
+            admission.status = 'admitted'
+            
+            # Update bed status if bed is assigned
+            if admission.bed:
+                admission.bed.is_occupied = True
+                admission.bed.save()
+                
+            admission.save()
             messages.success(request, 'IPD Admission created successfully.')
             return redirect('ipd_admission_list')
     else:
         form = IPDAdmissionForm()
     return render(request, 'hospital/ipd_admission_form.html', {'form': form})
+
+@login_required
+def ipd_admission_detail(request, pk):
+    admission = get_object_or_404(IPDAdmission, pk=pk)
+    return render(request, 'hospital/ipd_admission_detail.html', 
+                  {'admission': admission})
+
+@login_required
+def ipd_admission_edit(request, pk):
+    admission = get_object_or_404(IPDAdmission, pk=pk)
+    if request.method == 'POST':
+        form = IPDAdmissionForm(request.POST, instance=admission)
+        if form.is_valid():
+            # Handle bed changes
+            old_bed = admission.bed
+            new_bed = form.cleaned_data.get('bed')
+            
+            if old_bed != new_bed:
+                if old_bed:
+                    old_bed.is_occupied = False
+                    old_bed.save()
+                if new_bed:
+                    new_bed.is_occupied = True
+                    new_bed.save()
+            
+            form.save()
+            messages.success(request, 'IPD Admission updated successfully.')
+            return redirect('ipd_admission_detail', pk=admission.pk)
+    else:
+        form = IPDAdmissionForm(instance=admission)
+    return render(request, 'hospital/ipd_admission_form.html', {'form': form})
+
+@login_required
+def ipd_admission_discharge(request, pk):
+    admission = get_object_or_404(IPDAdmission, pk=pk)
+    if admission.status == 'admitted':
+        admission.status = 'discharged'
+        admission.discharge_date = timezone.now()
+        
+        # Free up the bed
+        if admission.bed:
+            admission.bed.is_occupied = False
+            admission.bed.save()
+        
+        admission.save()
+        messages.success(request, f'Patient {admission.patient.name} has been discharged.')
+    return redirect('ipd_admission_detail', pk=admission.pk)

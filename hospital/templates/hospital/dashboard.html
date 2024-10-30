@@ -407,18 +407,18 @@
                 </div>
             </div>
 
-            <!-- IPD Management Card -->
+            <!-- Add this card after the OPD Management Card -->
             <div class="card ipd">
                 <h3>IPD Management</h3>
                 <div class="card-content">
                     <div class="card-stats">
                         {{ ipd_admissions_count }}
                     </div>
-                    <p>Total Admissions</p>
-                    <div class="card-stats">
-                        {{ current_ipd_admissions_count }}
-                    </div>
                     <p>Current Admissions</p>
+                    <div class="card-icon">
+                        <i class="fas fa-procedures"></i>
+                    </div>
+                    <p>Manage in-patient admissions and ward allocations</p>
                 </div>
                 <div class="card-actions">
                     <a href="{% url 'ipd_admission_list' %}">View All</a>
@@ -426,6 +426,7 @@
                 </div>
             </div>
 
+            
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -338,15 +338,24 @@ class OPDAppointment(models.Model):
         return f"{self.patient} - {self.doctor} - {self.appointment_date}"
 
 class IPDAdmission(models.Model):
+    STATUS_CHOICES = [
+        ('admitted', 'Admitted'),
+        ('discharged', 'Discharged')
+    ]
+    
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     admission_date = models.DateTimeField()
     discharge_date = models.DateTimeField(null=True, blank=True)
     reason = models.TextField()
-    status = models.CharField(max_length=20, choices=[
-        ('admitted', 'Admitted'),
-        ('discharged', 'Discharged'),
-    ], default='admitted')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, 
+                              default='admitted')
+    bed = models.ForeignKey(Bed, on_delete=models.SET_NULL, 
+                            null=True, blank=True)
+    notes = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.patient} - {self.doctor} - {self.admission_date}"
+        return f"{self.patient.name} - {self.admission_date}"
+
+    def get_status_display(self):
+        return dict(self.STATUS_CHOICES)[self.status]

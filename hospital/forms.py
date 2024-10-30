@@ -230,7 +230,28 @@ class OPDAppointmentForm(forms.ModelForm):
 class IPDAdmissionForm(forms.ModelForm):
     class Meta:
         model = IPDAdmission
-        fields = ['patient', 'doctor', 'admission_date', 'reason']
+        fields = ['patient', 'doctor', 'admission_date', 'reason', 'bed', 'notes']
         widgets = {
-            'admission_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'admission_date': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+                format='%Y-%m-%dT%H:%M'
+            ),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+            'notes': forms.Textarea(attrs={'rows': 4}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only show available beds
+        self.fields['bed'].queryset = Bed.objects.filter(is_occupied=False)
+        
+        # Format doctor choices
+        doctors = Doctor.objects.select_related('employee').all()
+        doctor_choices = [(d.id, d.get_name()) for d in doctors]
+        self.fields['doctor'].choices = doctor_choices
+        
+        # Make important fields required
+        self.fields['patient'].required = True
+        self.fields['doctor'].required = True
+        self.fields['admission_date'].required = True
+        self.fields['reason'].required = True
