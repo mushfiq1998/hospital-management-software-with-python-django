@@ -1,5 +1,5 @@
 from django import forms
-from .models import Patient, Employee, Doctor, Appointment, Ward, Bed, OTBooking, Payroll, PatientBilling, Medication, Prescription, PrescriptionItem, Ambulance, AmbulanceAssignment, Communication, PatientSerial, LabTest, OPDAppointment, IPDAdmission
+from .models import Patient, Employee, Doctor, Appointment, Ward, Bed, OTBooking, Payroll, PatientBilling, Medication, Prescription, PrescriptionItem, Ambulance, AmbulanceAssignment, Communication, PatientSerial, LabTest, OPDAppointment, IPDAdmission, Insurance, InsuranceClaim
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 
@@ -255,3 +255,41 @@ class IPDAdmissionForm(forms.ModelForm):
         self.fields['doctor'].required = True
         self.fields['admission_date'].required = True
         self.fields['reason'].required = True
+
+class InsuranceForm(forms.ModelForm):
+    class Meta:
+        model = Insurance
+        fields = ['patient', 'policy_number', 'provider_name', 'policy_type',
+                 'coverage_amount', 'start_date', 'end_date', 'status',
+                 'documents', 'notes']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class InsuranceClaimForm(forms.ModelForm):
+    class Meta:
+        model = InsuranceClaim
+        fields = ['insurance', 'patient_billing', 'claimed_amount',
+                 'documents', 'notes']
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get the insurance instance either from initial data or from the form instance
+        insurance = None
+        if self.instance.pk:
+            insurance = self.instance.insurance
+        elif 'insurance' in self.initial:
+            insurance = self.initial['insurance']
+        
+        # Filter patient_billing based on the insurance's patient
+        if insurance:
+            self.fields['patient_billing'].queryset = PatientBilling.objects.filter(
+                patient=insurance.patient
+            )
+        else:
+            self.fields['patient_billing'].queryset = PatientBilling.objects.none()

@@ -392,6 +392,9 @@
             <div class="card opd">
                 <h3>OPD Management</h3>
                 <div class="card-content">
+                    <div class="card-icon">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
                     <div class="card-stats">
                         {{ opd_appointments_count }}
                     </div>
@@ -423,6 +426,23 @@
                 <div class="card-actions">
                     <a href="{% url 'ipd_admission_list' %}">View All</a>
                     <a href="{% url 'ipd_admission_create' %}">New Admission</a>
+                </div>
+            </div>
+
+            <!-- Add this card to your dashboard-grid div -->
+            <div class="card">
+                <div class="card-header">Insurance Management</div>
+                <div class="card-body">
+                    <div class="card-icon"><i class="fas fa-file-medical"></i></div>
+                    <p>Manage patient insurance policies and claims.</p>
+                    <div class="stats">
+                        <span><i class="fas fa-shield-alt"></i> Active Policies: {{ active_insurance_count }}</span>
+                        <span><i class="fas fa-file-invoice-dollar"></i> Pending Claims: {{ pending_claims_count }}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="{% url 'insurance_list' %}" class="card-link">View Insurance Policies</a>
+                    <a href="{% url 'insurance_claim_list' %}" class="card-link">View Claims</a>
                 </div>
             </div>
 

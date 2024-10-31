@@ -220,4 +220,19 @@ urlpatterns = [
          name='ipd_admission_discharge'),
     path('ipd/admissions/<int:admission_id>/pdf/', views.ipd_admission_pdf, 
          name='ipd_admission_pdf'),
+
+    # Insurance URLs
+    path('insurance/', views.insurance_list, name='insurance_list'),
+    path('insurance/create/', views.insurance_create, name='insurance_create'),
+    path('insurance/<int:pk>/', views.insurance_detail, name='insurance_detail'),
+    path('insurance/<int:pk>/edit/', views.insurance_edit, name='insurance_edit'),
+    path('insurance/<int:pk>/delete/', views.insurance_delete, name='insurance_delete'),
+    path('insurance/<int:pk>/pdf/', views.insurance_pdf, name='insurance_pdf'),
+
+    path('insurance-claims/', views.insurance_claim_list, name='insurance_claim_list'),
+    path('insurance-claims/create/', views.insurance_claim_create, name='insurance_claim_create'),
+    path('insurance-claims/<int:pk>/', views.insurance_claim_detail, name='insurance_claim_detail'),
+    path('insurance-claims/<int:pk>/edit/', views.insurance_claim_edit, name='insurance_claim_edit'),
+    path('insurance-claims/<int:pk>/delete/', views.insurance_claim_delete, name='insurance_claim_delete'),
+    path('insurance-claims/<int:pk>/pdf/', views.insurance_claim_pdf, name='insurance_claim_pdf'),
 ]

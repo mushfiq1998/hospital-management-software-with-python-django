@@ -359,3 +359,82 @@ class IPDAdmission(models.Model):
 
     def get_status_display(self):
         return dict(self.STATUS_CHOICES)[self.status]
+
+class Insurance(models.Model):
+    INSURANCE_STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('expired', 'Expired'),
+        ('pending', 'Pending Approval'),
+        ('rejected', 'Rejected'),
+    ]
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, 
+                                related_name='insurances')
+    policy_number = models.CharField(max_length=50, unique=True)
+    provider_name = models.CharField(max_length=100, null=True, blank=True)
+    policy_type = models.CharField(max_length=100, null=True, blank=True)
+    coverage_amount = models.DecimalField(max_digits=10, decimal_places=2, 
+                                          null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, 
+                              choices=INSURANCE_STATUS_CHOICES, 
+                              default='pending')
+    documents = models.FileField(upload_to='insurance_documents/', 
+                                 null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.patient.name} - {self.policy_number}"
+
+    def is_valid(self):
+        today = timezone.now().date()
+        return (self.status == 'active' and 
+                self.start_date <= today <= self.end_date)
+
+    def remaining_coverage(self):
+        used_amount = self.claims.aggregate(
+            total=models.Sum('claimed_amount'))['total'] or 0
+        return self.coverage_amount - used_amount
+
+class InsuranceClaim(models.Model):
+    CLAIM_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('paid', 'Paid'),
+    ]
+
+    insurance = models.ForeignKey(Insurance, on_delete=models.CASCADE, 
+                                  related_name='claims')
+    patient_billing = models.ForeignKey(PatientBilling, 
+                    on_delete=models.CASCADE, null=True, blank=True   )
+    claim_number = models.CharField(max_length=50, unique=True)
+    claimed_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    approved_amount = models.DecimalField(max_digits=10, decimal_places=2, 
+                                           null=True, blank=True)
+    status = models.CharField(max_length=20, choices=CLAIM_STATUS_CHOICES, 
+                              default='pending')
+    filed_date = models.DateField(auto_now_add=True)
+    processed_date = models.DateField(null=True, blank=True)
+    documents = models.FileField(upload_to='claim_documents/', 
+                                  null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Claim {self.claim_number} - {self.insurance.patient.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.claim_number:
+            # Generate a unique claim number
+            prefix = 'CLM'
+            last_claim = InsuranceClaim.objects.order_by('-id').first()
+            if last_claim:
+                last_number = int(last_claim.claim_number[3:])
+                self.claim_number = f"{prefix}{str(last_number + 1).zfill(6)}"
+            else:
+                self.claim_number = f"{prefix}000001"
+        super().save(*args, **kwargs)

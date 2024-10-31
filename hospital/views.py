@@ -2,11 +2,13 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from .models import Patient, Employee, Doctor, Appointment, Ward, Bed,\
       OTBooking, Payroll, PatientBilling, Medication, Prescription,\
-      Ambulance, AmbulanceAssignment, Communication, LabTest, OPDAppointment, IPDAdmission
+      Ambulance, AmbulanceAssignment, Communication, LabTest, OPDAppointment,\
+          IPDAdmission, Insurance, InsuranceClaim
 from .forms import PatientForm, EmployeeForm, DoctorForm, AppointmentForm, \
 WardForm, BedForm, OTBookingForm, PatientBillingForm, MedicationForm,\
       PrescriptionForm, AmbulanceForm, AmbulanceAssignmentForm,\
-          CommunicationForm, LabTestForm, OPDAppointmentForm, IPDAdmissionForm
+          CommunicationForm, LabTestForm, OPDAppointmentForm, IPDAdmissionForm,\
+              InsuranceForm, InsuranceClaimForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -73,6 +75,10 @@ def dashboard(request):
     # Add IPD statistics
     ipd_admissions_count = IPDAdmission.objects.filter(status='admitted').count()
     
+    # Add these lines for insurance statistics
+    active_insurance_count = Insurance.objects.filter(status='active').count()
+    pending_claims_count = InsuranceClaim.objects.filter(status='pending').count()
+    
     context = {
         'employees_count': employees_count,
         'patients_count': patients_count,
@@ -93,6 +99,8 @@ def dashboard(request):
         'opd_appointments_count': opd_appointments_count,
         'today_opd_appointments_count': today_opd_appointments_count,
         'ipd_admissions_count': ipd_admissions_count,
+        'active_insurance_count': active_insurance_count,
+        'pending_claims_count': pending_claims_count,
     }
     return render(request, 'hospital/dashboard.html', context)
 
@@ -1368,6 +1376,139 @@ def ipd_admission_pdf(request, admission_id):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'filename="ipd_admission_{admission_id}.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+# Add these to your views.py
+@login_required
+def insurance_list(request):
+    insurances = Insurance.objects.all().order_by('-created_at')
+    return render(request, 'hospital/insurance_list.html', 
+                  {'insurances': insurances})
+
+@login_required
+def insurance_create(request):
+    if request.method == 'POST':
+        form = InsuranceForm(request.POST, request.FILES)
+        if form.is_valid():
+            insurance = form.save()
+            messages.success(request, 'Insurance policy created successfully.')
+            return redirect('insurance_detail', pk=insurance.pk)
+    else:
+        form = InsuranceForm()
+    return render(request, 'hospital/insurance_form.html', {'form': form})
+
+@login_required
+def insurance_detail(request, pk):
+    insurance = get_object_or_404(Insurance, pk=pk)
+    claims = insurance.claims.all().order_by('-created_at')
+    return render(request, 'hospital/insurance_detail.html', 
+                 {'insurance': insurance, 'claims': claims})
+
+@login_required
+def insurance_edit(request, pk):
+    insurance = get_object_or_404(Insurance, pk=pk)
+    if request.method == 'POST':
+        form = InsuranceForm(request.POST, request.FILES, instance=insurance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Insurance policy updated successfully.')
+            return redirect('insurance_detail', pk=insurance.pk)
+    else:
+        form = InsuranceForm(instance=insurance)
+    return render(request, 'hospital/insurance_form.html', {'form': form})
+
+@login_required
+def insurance_delete(request, pk):
+    insurance = get_object_or_404(Insurance, pk=pk)
+    if request.method == 'POST':
+        insurance.delete()
+        messages.success(request, 'Insurance policy deleted successfully.')
+        return redirect('insurance_list')
+    return render(request, 'hospital/insurance_confirm_delete.html', 
+                 {'insurance': insurance})
+
+@login_required
+def insurance_claim_list(request):
+    claims = InsuranceClaim.objects.all().order_by('-created_at')
+    return render(request, 'hospital/insurance_claim_list.html', 
+                  {'claims': claims})
+
+@login_required
+def insurance_claim_create(request):
+    if request.method == 'POST':
+        form = InsuranceClaimForm(request.POST, request.FILES)
+        if form.is_valid():
+            claim = form.save()
+            messages.success(request, 'Insurance claim created successfully.')
+            return redirect('insurance_claim_detail', pk=claim.pk)
+    else:
+        insurance_id = request.GET.get('insurance')
+        initial = {}
+        if insurance_id:
+            insurance = get_object_or_404(Insurance, pk=insurance_id)
+            initial['insurance'] = insurance
+        form = InsuranceClaimForm(initial=initial)
+    return render(request, 'hospital/insurance_claim_form.html', {'form': form})
+
+@login_required
+def insurance_claim_detail(request, pk):
+    claim = get_object_or_404(InsuranceClaim, pk=pk)
+    return render(request, 'hospital/insurance_claim_detail.html', 
+                  {'claim': claim})
+
+@login_required
+def insurance_claim_edit(request, pk):
+    claim = get_object_or_404(InsuranceClaim, pk=pk)
+    if request.method == 'POST':
+        form = InsuranceClaimForm(request.POST, request.FILES, instance=claim)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Insurance claim updated successfully.')
+            return redirect('insurance_claim_detail', pk=claim.pk)
+    else:
+        form = InsuranceClaimForm(instance=claim)
+    return render(request, 'hospital/insurance_claim_form.html', {'form': form})
+
+@login_required
+def insurance_claim_delete(request, pk):
+    claim = get_object_or_404(InsuranceClaim, pk=pk)
+    if request.method == 'POST':
+        claim.delete()
+        messages.success(request, 'Insurance claim deleted successfully.')
+        return redirect('insurance_claim_list')
+    return render(request, 'hospital/insurance_claim_confirm_delete.html', 
+                 {'claim': claim})
+
+def insurance_pdf(request, pk):
+    insurance = get_object_or_404(Insurance, pk=pk)
+    template_path = 'hospital/insurance_pdf.html'
+    context = {'insurance': insurance}
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="insurance_{pk}.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+def insurance_claim_pdf(request, pk):
+    claim = get_object_or_404(InsuranceClaim, pk=pk)
+    template_path = 'hospital/insurance_claim_pdf.html'
+    context = {'claim': claim}
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="insurance_claim_{pk}.pdf"'
     
     template = get_template(template_path)
     html = template.render(context)

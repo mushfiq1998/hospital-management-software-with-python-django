@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Policies</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e8f5e9;
+            margin: 0;
+            padding: 20px;
+            color: #2e7d32;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2e7d32;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .insurance-table {
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .insurance-table th,
+        .insurance-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .insurance-table th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        .insurance-table tr:last-child td {
+            border-bottom: none;
+        }
+        .insurance-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status-active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .status-expired {
+            background-color: #f44336;
+            color: white;
+        }
+        .status-pending {
+            background-color: #ff9800;
+            color: white;
+        }
+        .status-rejected {
+            background-color: #9e9e9e;
+            color: white;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #4CAF50;
+        }
+        .btn-secondary:hover {
+            background-color: #45a049;
+        }
+        .btn-danger {
+            background-color: #4CAF50;
+        }
+        .btn-danger:hover {
+            background-color: #45a049;
+        }
+        .add-new {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .coverage-amount {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .actions {
+            white-space: nowrap;
+        }
+        .no-insurance {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'dashboard' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        
+        <h1>Insurance Policies</h1>
+
+        <div class="add-new">
+            <a href="{% url 'insurance_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Insurance Policy
+            </a>
+        </div>
+
+        {% if insurances %}
+            <table class="insurance-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Policy Number</th>
+                        <th>Provider</th>
+                        <th>Coverage Amount</th>
+                        <th>Valid Period</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insurance in insurances %}
+                        <tr>
+                            <td>{{ insurance.patient.name }}</td>
+                            <td>{{ insurance.policy_number }}</td>
+                            <td>{{ insurance.provider_name }}</td>
+                            <td class="coverage-amount">
+                                {% if insurance.coverage_amount %}
+                                    {{ insurance.coverage_amount|floatformat:2 }} TK
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if insurance.start_date and insurance.end_date %}
+                                    {{ insurance.start_date|date:"M d, Y" }} - 
+                                    {{ insurance.end_date|date:"M d, Y" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ insurance.status }}">
+                                    {{ insurance.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="actions">
+                                <a href="{% url 'insurance_detail' insurance.pk %}" class="btn btn-secondary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <a href="{% url 'insurance_edit' insurance.pk %}" class="btn btn-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'insurance_claim_create' %}?insurance={{ insurance.pk }}" 
+                                   class="btn btn-primary">
+                                    <i class="fas fa-file-invoice"></i> New Claim
+                                </a>
+                                <a href="{% url 'insurance_delete' insurance.pk %}" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-insurance">
+                <i class="fas fa-file-medical fa-3x"></i>
+                <p>No insurance policies found.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html> 
