@@ -3,12 +3,12 @@ from django.urls import reverse, reverse_lazy
 from .models import Patient, Employee, Doctor, Appointment, Ward, Bed,\
       OTBooking, Payroll, PatientBilling, Medication, Prescription,\
       Ambulance, AmbulanceAssignment, Communication, LabTest, OPDAppointment,\
-          IPDAdmission, Insurance, InsuranceClaim
+          IPDAdmission, Insurance, InsuranceClaim, Department, LeaveRequest
 from .forms import PatientForm, EmployeeForm, DoctorForm, AppointmentForm, \
 WardForm, BedForm, OTBookingForm, PatientBillingForm, MedicationForm,\
       PrescriptionForm, AmbulanceForm, AmbulanceAssignmentForm,\
           CommunicationForm, LabTestForm, OPDAppointmentForm, IPDAdmissionForm,\
-              InsuranceForm, InsuranceClaimForm
+              InsuranceForm, InsuranceClaimForm, LeaveRequestForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -79,6 +79,10 @@ def dashboard(request):
     active_insurance_count = Insurance.objects.filter(status='active').count()
     pending_claims_count = InsuranceClaim.objects.filter(status='pending').count()
     
+    # Add HR statistics
+    departments_count = Department.objects.count()
+    pending_leave_requests = LeaveRequest.objects.filter(status='pending').count()
+    
     context = {
         'employees_count': employees_count,
         'patients_count': patients_count,
@@ -101,6 +105,8 @@ def dashboard(request):
         'ipd_admissions_count': ipd_admissions_count,
         'active_insurance_count': active_insurance_count,
         'pending_claims_count': pending_claims_count,
+        'departments_count': departments_count,
+        'pending_leave_requests': pending_leave_requests,
     }
     return render(request, 'hospital/dashboard.html', context)
 
@@ -1509,6 +1515,112 @@ def insurance_claim_pdf(request, pk):
     
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'filename="insurance_claim_{pk}.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+@login_required
+def hr_dashboard(request):
+    departments = Department.objects.all()
+    employees = Employee.objects.all()
+    leave_requests = LeaveRequest.objects.all().order_by('-created_at')
+    pending_leaves = leave_requests.filter(status='pending').count()
+    approved_leaves = leave_requests.filter(status='approved').count()
+    rejected_leaves = leave_requests.filter(status='rejected').count()
+
+    context = {
+        'departments': departments,
+        'employees': employees,
+        'leave_requests': leave_requests[:5],  # Show only latest 5
+        'pending_leaves': pending_leaves,
+        'approved_leaves': approved_leaves,
+        'rejected_leaves': rejected_leaves,
+        'total_employees': employees.count(),
+        'total_departments': departments.count(),
+    }
+    return render(request, 'hospital/hr_dashboard.html', context)
+
+@login_required
+def leave_requests(request):
+    leave_requests = LeaveRequest.objects.all().order_by('-created_at')
+    return render(request, 'hospital/leave_request_list.html', {'leave_requests': leave_requests})
+
+@login_required
+def leave_request_create(request):
+    if request.method == 'POST':
+        form = LeaveRequestForm(request.POST)
+        if form.is_valid():
+            leave_request = form.save()
+            messages.success(request, 'Leave request submitted successfully.')
+            return redirect('leave_request_detail', pk=leave_request.pk)
+    else:
+        form = LeaveRequestForm()
+    return render(request, 'hospital/leave_request_form.html', {'form': form})
+
+@login_required
+def leave_request_detail(request, pk):
+    leave_request = get_object_or_404(LeaveRequest, pk=pk)
+    return render(request, 'hospital/leave_request_detail.html', {'leave_request': leave_request})
+
+@login_required
+def leave_request_edit(request, pk):
+    leave_request = get_object_or_404(LeaveRequest, pk=pk)
+    if request.method == 'POST':
+        form = LeaveRequestForm(request.POST, instance=leave_request)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Leave request updated successfully.')
+            return redirect('leave_request_detail', pk=leave_request.pk)
+    else:
+        form = LeaveRequestForm(instance=leave_request)
+    return render(request, 'hospital/leave_request_form.html', {'form': form})
+
+@login_required
+def leave_request_delete(request, pk):
+    leave_request = get_object_or_404(LeaveRequest, pk=pk)
+    if request.method == 'POST':
+        leave_request.delete()
+        messages.success(request, 'Leave request deleted successfully.')
+        return redirect('leave_requests')
+    return render(request, 'hospital/leave_request_confirm_delete.html', {'leave_request': leave_request})
+
+@login_required
+def leave_request_approve(request, pk):
+    leave_request = get_object_or_404(LeaveRequest, pk=pk)
+    if leave_request.status == 'pending':
+        leave_request.status = 'approved'
+        # Try to get the employee associated with the user
+        try:
+            employee = Employee.objects.get(email=request.user.email)
+            leave_request.approved_by = employee
+        except Employee.DoesNotExist:
+            # If no employee is found, just update the status without setting approved_by
+            messages.warning(request, 'Leave request approved, but approver information could not be recorded.')
+        leave_request.save()
+        messages.success(request, 'Leave request approved successfully.')
+    return redirect('leave_request_detail', pk=pk)
+
+@login_required
+def leave_request_reject(request, pk):
+    leave_request = get_object_or_404(LeaveRequest, pk=pk)
+    if leave_request.status == 'pending':
+        leave_request.status = 'rejected'
+        leave_request.save()
+        messages.success(request, 'Leave request rejected.')
+    return redirect('leave_request_detail', pk=pk)
+
+def leave_request_pdf(request, pk):
+    leave_request = get_object_or_404(LeaveRequest, pk=pk)
+    template_path = 'hospital/leave_request_pdf.html'
+    context = {'leave_request': leave_request}
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="leave_request_{pk}.pdf"'
     
     template = get_template(template_path)
     html = template.render(context)

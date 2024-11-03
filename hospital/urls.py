@@ -235,4 +235,15 @@ urlpatterns = [
     path('insurance-claims/<int:pk>/edit/', views.insurance_claim_edit, name='insurance_claim_edit'),
     path('insurance-claims/<int:pk>/delete/', views.insurance_claim_delete, name='insurance_claim_delete'),
     path('insurance-claims/<int:pk>/pdf/', views.insurance_claim_pdf, name='insurance_claim_pdf'),
+
+    # HR URLs
+    path('hr/dashboard/', views.hr_dashboard, name='hr_dashboard'),
+    path('hr/leave-requests/', views.leave_requests, name='leave_requests'),
+    path('hr/leave-requests/create/', views.leave_request_create, name='leave_request_create'),
+    path('hr/leave-requests/<int:pk>/', views.leave_request_detail, name='leave_request_detail'),
+    path('hr/leave-requests/<int:pk>/edit/', views.leave_request_edit, name='leave_request_edit'),
+    path('hr/leave-requests/<int:pk>/delete/', views.leave_request_delete, name='leave_request_delete'),
+    path('hr/leave-requests/<int:pk>/approve/', views.leave_request_approve, name='leave_request_approve'),
+    path('hr/leave-requests/<int:pk>/reject/', views.leave_request_reject, name='leave_request_reject'),
+    path('hr/leave-requests/<int:pk>/pdf/', views.leave_request_pdf, name='leave_request_pdf'),
 ]

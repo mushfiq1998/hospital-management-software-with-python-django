@@ -318,7 +318,10 @@ class LabTest(models.Model):
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(blank=True)
+    head = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='headed_department')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -438,3 +441,101 @@ class InsuranceClaim(models.Model):
             else:
                 self.claim_number = f"{prefix}000001"
         super().save(*args, **kwargs)
+
+class LeaveRequest(models.Model):
+    LEAVE_TYPES = [
+        ('annual', 'Annual Leave'),
+        ('sick', 'Sick Leave'),
+        ('maternity', 'Maternity Leave'),
+        ('paternity', 'Paternity Leave'),
+        ('unpaid', 'Unpaid Leave'),
+        ('other', 'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, 
+                                 related_name='leave_requests')
+    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPES)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    reason = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, 
+                                default='pending')
+    approved_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, 
+                        null=True, blank=True, related_name='approved_leaves')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.employee.name} - {self.leave_type} ({self.start_date} to {self.end_date})"
+
+    def duration(self):
+        return (self.end_date - self.start_date).days + 1
+
+
+class Attendance(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, 
+                                 related_name='attendance')
+    date = models.DateField(null=True, blank=True)
+    time_in = models.TimeField(null=True, blank=True)
+    time_out = models.TimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=[
+        ('present', 'Present'),
+        ('absent', 'Absent'),
+        ('late', 'Late'),
+        ('half_day', 'Half Day'),
+    ])
+    notes = models.TextField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ['employee', 'date']
+
+    def __str__(self):
+        return f"{self.employee.name} - {self.date}"
+
+class Performance(models.Model):
+    RATING_CHOICES = [
+        (1, 'Poor'),
+        (2, 'Below Average'),
+        (3, 'Average'),
+        (4, 'Good'),
+        (5, 'Excellent'),
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, 
+                                 related_name='performance_reviews')
+    review_date = models.DateField(null=True, blank=True)
+    reviewer = models.ForeignKey(Employee, on_delete=models.SET_NULL, 
+                                 null=True, related_name='reviews_given')
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    comments = models.TextField(null=True, blank=True)
+    goals = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.employee.name} - {self.review_date}"
+
+class Training(models.Model):
+    title = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    trainer = models.CharField(max_length=100, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    participants = models.ManyToManyField(Employee, related_name='trainings')
+    status = models.CharField(max_length=20, choices=[
+        ('scheduled', 'Scheduled'),
+        ('ongoing', 'Ongoing'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title

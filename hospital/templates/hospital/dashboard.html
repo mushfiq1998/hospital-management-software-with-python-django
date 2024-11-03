@@ -446,6 +446,24 @@
                 </div>
             </div>
 
+            <!-- Add this card to your dashboard-grid div -->
+            <div class="card">
+                <div class="card-header">HR Management</div>
+                <div class="card-body">
+                    <div class="card-icon"><i class="fas fa-users-cog"></i></div>
+                    <p>Manage human resources and employee records.</p>
+                    <div class="stats">
+                        <span><i class="fas fa-user-tie"></i> Employees: {{ employees_count }}</span>
+                        <span><i class="fas fa-briefcase"></i> Departments: {{ departments_count }}</span>
+                        <span><i class="fas fa-clock"></i> Leave Requests: {{ pending_leave_requests }}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="{% url 'hr_dashboard' %}" class="card-link">HR Dashboard</a>
+                    <a href="{% url 'leave_requests' %}" class="card-link">Leave Requests</a>
+                </div>
+            </div>
+
             
         </div>
     </div>
