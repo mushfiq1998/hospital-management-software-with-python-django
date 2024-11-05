@@ -1,0 +1,223 @@
+{% extends 'hospital/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h2 class="mb-0">
+                <i class="fas fa-hospital me-2"></i>
+                Assign Ward to Nurse
+            </h2>
+        </div>
+        <div class="card-body">
+            <!-- Nurse Information -->
+            <div class="nurse-info glass-card mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center">
+                        {% if nurse.get_photo_url %}
+                            <img src="{{ nurse.get_photo_url }}" alt="Nurse Photo" class="nurse-photo mb-3">
+                        {% else %}
+                            <div class="no-photo mb-3">
+                                <i class="fas fa-user-nurse"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <h4 class="text-success">{{ nurse.get_name }}</h4>
+                        <p class="text-muted mb-2">License #{{ nurse.license_number }}</p>
+                        <div class="current-assignment">
+                            <p class="mb-2">
+                                <strong>Current Ward:</strong> 
+                                {% if nurse.assigned_ward %}
+                                    <span class="badge bg-info">{{ nurse.assigned_ward.name }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Not Assigned</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Shift:</strong>
+                                <span class="badge {% if nurse.shift == 'morning' %}bg-morning
+                                    {% elif nurse.shift == 'evening' %}bg-evening
+                                    {% else %}bg-night{% endif %}">
+                                    {{ nurse.get_shift_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ward Selection Form -->
+            <div class="ward-selection glass-card">
+                <h4 class="text-success mb-4">Select Ward</h4>
+                <form method="post" class="ward-form">
+                    {% csrf_token %}
+                    <div class="row">
+                        {% for ward in wards %}
+                        <div class="col-md-4 mb-3">
+                            <div class="ward-card {% if nurse.assigned_ward == ward %}active{% endif %}">
+                                <input type="radio" name="ward" value="{{ ward.pk }}" 
+                                       id="ward_{{ ward.pk }}" class="ward-radio"
+                                       {% if nurse.assigned_ward == ward %}checked{% endif %}>
+                                <label for="ward_{{ ward.pk }}" class="ward-label">
+                                    <div class="ward-icon">
+                                        <i class="fas fa-hospital-alt"></i>
+                                    </div>
+                                    <h5>{{ ward.name }}</h5>
+                                    <p class="mb-0">Capacity: {{ ward.capacity }}</p>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check-circle me-2"></i>Assign Ward
+                        </button>
+                        <a href="{% url 'nurse_detail' nurse.pk %}" class="btn btn-secondary btn-lg ms-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .nurse-photo {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #28a745;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .no-photo {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3em;
+        color: #28a745;
+        border: 4px solid #28a745;
+    }
+
+    .ward-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .ward-card:hover {
+        border-color: #28a745;
+        transform: translateY(-2px);
+    }
+
+    .ward-card.active {
+        border-color: #28a745;
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+
+    .ward-radio {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .ward-label {
+        cursor: pointer;
+        display: block;
+        margin: 0;
+    }
+
+    .ward-icon {
+        font-size: 2em;
+        color: #28a745;
+        margin-bottom: 10px;
+    }
+
+    .badge {
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: normal;
+    }
+
+    .bg-morning {
+        background: linear-gradient(45deg, #ffc107, #ff9800);
+    }
+
+    .bg-evening {
+        background: linear-gradient(45deg, #17a2b8, #0056b3);
+    }
+
+    .bg-night {
+        background: linear-gradient(45deg, #6f42c1, #4527a0);
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+    }
+
+    .btn-secondary {
+        background: linear-gradient(45deg, #6c757d, #5a6268);
+        border: none;
+    }
+
+    h4.text-success {
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+
+    h4.text-success::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: #28a745;
+        border-radius: 2px;
+    }
+
+    @media (max-width: 768px) {
+        .nurse-info .col-md-3 {
+            margin-bottom: 1rem;
+        }
+
+        .btn-lg {
+            width: 100%;
+            margin: 0.5rem 0 !important;
+        }
+    }
+</style>
+{% endblock %} 

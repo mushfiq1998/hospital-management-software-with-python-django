@@ -5,7 +5,7 @@ from .models import (
     Ambulance, AmbulanceAssignment, Communication, PatientSerial, 
     LabTest, OPDAppointment, IPDAdmission, Insurance, InsuranceClaim,
     Department, LeaveRequest, Attendance, Performance, Training,
-    Notice, Report
+    Notice, Report, Nurse
 )
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
@@ -379,3 +379,56 @@ class ReportFilterForm(forms.Form):
             'placeholder': 'Search reports...'
         })
     )
+
+class NurseForm(forms.ModelForm):
+    name = forms.CharField(max_length=100, required=True)
+    position = forms.CharField(max_length=100, required=False)
+    phone_number = forms.CharField(max_length=15, required=False)
+    email = forms.EmailField(required=False)
+    photo = forms.ImageField(required=False)
+    joining_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+
+    class Meta:
+        model = Nurse
+        fields = ['department', 'specialization', 'shift', 'is_on_duty', 
+                 'assigned_ward', 'license_number', 'experience_years', 
+                 'additional_skills']
+        widgets = {
+            'additional_skills': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only try to get employee details if we have an existing instance with an employee
+        if self.instance and hasattr(self.instance, 'employee') and self.instance.employee:
+            self.fields['name'].initial = self.instance.employee.name
+            self.fields['position'].initial = self.instance.employee.position
+            self.fields['phone_number'].initial = self.instance.employee.phone_number
+            self.fields['email'].initial = self.instance.employee.email
+            self.fields['joining_date'].initial = self.instance.employee.joining_date
+
+    def save(self, commit=True):
+        nurse = super().save(commit=False)
+        
+        # Create or update employee
+        if hasattr(nurse, 'employee') and nurse.employee:
+            employee = nurse.employee
+        else:
+            employee = Employee()
+        
+        # Update employee fields
+        employee.name = self.cleaned_data['name']
+        employee.position = 'Nurse'
+        employee.phone_number = self.cleaned_data.get('phone_number')
+        employee.email = self.cleaned_data.get('email')
+        employee.joining_date = self.cleaned_data.get('joining_date')
+        
+        if 'photo' in self.cleaned_data and self.cleaned_data['photo']:
+            employee.photo = self.cleaned_data['photo']
+        
+        if commit:
+            employee.save()
+            nurse.employee = employee
+            nurse.save()
+        
+        return nurse

@@ -261,4 +261,13 @@ urlpatterns = [
     path('reports/create/', views.report_create, name='report_create'),
     path('reports/<int:pk>/delete/', views.report_delete, name='report_delete'),
     path('reports/<int:pk>/download/', views.report_download, name='report_download'),
+
+    # Nurse URLs
+    path('nurses/', views.nurse_list, name='nurse_list'),
+    path('nurses/create/', views.nurse_create, name='nurse_create'),
+    path('nurses/<int:pk>/', views.nurse_detail, name='nurse_detail'),
+    path('nurses/<int:pk>/edit/', views.nurse_edit, name='nurse_edit'),
+    path('nurses/<int:pk>/delete/', views.nurse_delete, name='nurse_delete'),
+    path('nurses/<int:pk>/assign-ward/', views.assign_nurse_ward, name='assign_nurse_ward'),
+    path('nurses/<int:pk>/pdf/', views.nurse_pdf, name='nurse_pdf'),
 ]

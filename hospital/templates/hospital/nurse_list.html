@@ -1,0 +1,230 @@
+{% extends 'hospital/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="fas fa-user-nurse me-2"></i>
+                Nurse Management
+            </h2>
+            <a href="{% url 'nurse_create' %}" class="btn btn-light">
+                <i class="fas fa-plus-circle me-2"></i>Add New Nurse
+            </a>
+        </div>
+
+        <div class="card-body">
+            <!-- Shift Summary -->
+            <div class="shift-summary mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="shift-card bg-morning">
+                            <i class="fas fa-sun"></i>
+                            <h4>Morning Shift</h4>
+                            <p>{{ morning_count }} Nurses</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="shift-card bg-evening">
+                            <i class="fas fa-cloud-sun"></i>
+                            <h4>Evening Shift</h4>
+                            <p>{{ evening_count }} Nurses</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="shift-card bg-night">
+                            <i class="fas fa-moon"></i>
+                            <h4>Night Shift</h4>
+                            <p>{{ night_count }} Nurses</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="shift-card bg-duty">
+                            <i class="fas fa-clock"></i>
+                            <h4>On Duty</h4>
+                            <p>{{ on_duty_count }} Nurses</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if nurses %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-success">
+                        <tr>
+                            <th>Photo</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Shift</th>
+                            <th>Ward</th>
+                            <th>Status</th>
+                            <th>Contact</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for nurse in nurses %}
+                        <tr>
+                            <td>
+                                {% if nurse.get_photo_url %}
+                                    <img src="{{ nurse.get_photo_url }}" alt="Nurse Photo" 
+                                         class="rounded-circle nurse-photo">
+                                {% else %}
+                                    <div class="no-photo">
+                                        <i class="fas fa-user-nurse"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>{{ nurse.get_name }}</td>
+                            <td>{{ nurse.department.name|default:"Not Assigned" }}</td>
+                            <td>
+                                <span class="badge {% if nurse.shift == 'morning' %}bg-morning
+                                    {% elif nurse.shift == 'evening' %}bg-evening
+                                    {% else %}bg-night{% endif %}">
+                                    {{ nurse.get_shift_display }}
+                                </span>
+                            </td>
+                            <td>{{ nurse.assigned_ward.name|default:"Not Assigned" }}</td>
+                            <td>
+                                <span class="badge {% if nurse.is_on_duty %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ nurse.is_on_duty|yesno:"On Duty,Off Duty" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="contact-info">
+                                    {% if nurse.get_contact %}
+                                        <i class="fas fa-phone me-1"></i>{{ nurse.get_contact }}
+                                    {% endif %}
+                                    {% if nurse.get_email %}
+                                        <br>
+                                        <i class="fas fa-envelope me-1"></i>{{ nurse.get_email }}
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'nurse_detail' nurse.pk %}" 
+                                       class="btn btn-sm btn-info" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'nurse_edit' nurse.pk %}" 
+                                       class="btn btn-sm btn-primary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'assign_nurse_ward' nurse.pk %}" 
+                                       class="btn btn-sm btn-success" title="Assign Ward">
+                                        <i class="fas fa-hospital"></i>
+                                    </a>
+                                    <a href="{% url 'nurse_delete' nurse.pk %}" 
+                                       class="btn btn-sm btn-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No nurses found.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .shift-card {
+        padding: 20px;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+    }
+
+    .shift-card i {
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+
+    .shift-card h4 {
+        margin: 10px 0;
+        font-size: 1.2em;
+    }
+
+    .shift-card p {
+        margin: 0;
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+
+    .bg-morning {
+        background: linear-gradient(45deg, #ffc107, #ff9800);
+    }
+
+    .bg-evening {
+        background: linear-gradient(45deg, #17a2b8, #0056b3);
+    }
+
+    .bg-night {
+        background: linear-gradient(45deg, #6f42c1, #4527a0);
+    }
+
+    .bg-duty {
+        background: linear-gradient(45deg, #28a745, #20c997);
+    }
+
+    .nurse-photo {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+    }
+
+    .no-photo {
+        width: 50px;
+        height: 50px;
+        background-color: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+
+    .contact-info {
+        font-size: 0.9em;
+        color: #666;
+    }
+
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .badge {
+        padding: 0.5em 0.8em;
+        font-weight: normal;
+    }
+
+    .table th {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        font-weight: 500;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-info { background-color: #17a2b8; border: none; }
+    .btn-primary { background-color: #007bff; border: none; }
+    .btn-success { background-color: #28a745; border: none; }
+    .btn-danger { background-color: #dc3545; border: none; }
+
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %} 

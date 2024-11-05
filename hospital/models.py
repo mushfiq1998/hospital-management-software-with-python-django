@@ -608,3 +608,42 @@ class ReportAttachment(models.Model):
 
     def __str__(self):
         return self.filename
+
+class Nurse(models.Model):
+    SHIFT_CHOICES = [
+        ('morning', 'Morning Shift'),
+        ('evening', 'Evening Shift'),
+        ('night', 'Night Shift'),
+    ]
+
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, 
+                                  related_name='nurse')
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, 
+                                 null=True, blank=True)
+    specialization = models.CharField(max_length=100, blank=True, null=True)
+    shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, 
+                           default='morning')
+    is_on_duty = models.BooleanField(default=False)
+    assigned_ward = models.ForeignKey(Ward, on_delete=models.SET_NULL, 
+                                    null=True, blank=True)
+    license_number = models.CharField(max_length=50, unique=True)
+    experience_years = models.PositiveIntegerField(default=0)
+    additional_skills = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Nurse {self.employee.name}"
+
+    def get_name(self):
+        return self.employee.name if self.employee else "No Name"
+
+    def get_contact(self):
+        return self.employee.phone_number if self.employee else None
+
+    def get_email(self):
+        return self.employee.email if self.employee else None
+
+    def get_photo_url(self):
+        return self.employee.photo.url if self.employee and self.employee.photo else None
+
+    class Meta:
+        ordering = ['employee__name']

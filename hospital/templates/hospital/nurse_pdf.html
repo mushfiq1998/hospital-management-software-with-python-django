@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Nurse Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            color: #333;
+            font-size: 12pt;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            color: #28a745;
+            margin: 0;
+            font-size: 18pt;
+        }
+        .header p {
+            color: #666;
+            margin: 5px 0;
+            font-size: 12pt;
+        }
+        .nurse-info {
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            background-color: #f8f9fa;
+            padding: 8px;
+            margin-bottom: 10px;
+            color: #28a745;
+            font-weight: bold;
+            border-left: 4px solid #28a745;
+            font-size: 14pt;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .info-table th, .info-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+            font-size: 12pt;
+        }
+        .info-table th {
+            background-color: #f5f5f5;
+            width: 30%;
+            font-weight: bold;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12pt;
+            color: white;
+            display: inline-block;
+        }
+        .status-on-duty {
+            background-color: #28a745;
+        }
+        .status-off-duty {
+            background-color: #6c757d;
+        }
+        .shift-morning {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .shift-evening {
+            background-color: #17a2b8;
+        }
+        .shift-night {
+            background-color: #6f42c1;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .skills-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 12pt;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Nurse Information</h1>
+        <p>Generated on: {{ nurse.employee.created_at|date:"F d, Y H:i" }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Personal Information</div>
+        <table class="info-table">
+            <tr>
+                <th>Name</th>
+                <td>{{ nurse.get_name }}</td>
+            </tr>
+            <tr>
+                <th>License Number</th>
+                <td>{{ nurse.license_number }}</td>
+            </tr>
+            <tr>
+                <th>Contact</th>
+                <td>{{ nurse.get_contact|default:"Not Available" }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ nurse.get_email|default:"Not Available" }}</td>
+            </tr>
+            <tr>
+                <th>Experience</th>
+                <td>{{ nurse.experience_years }} Years</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Work Information</div>
+        <table class="info-table">
+            <tr>
+                <th>Department</th>
+                <td>{{ nurse.department.name|default:"Not Assigned" }}</td>
+            </tr>
+            <tr>
+                <th>Specialization</th>
+                <td>{{ nurse.specialization|default:"Not Specified" }}</td>
+            </tr>
+            <tr>
+                <th>Assigned Ward</th>
+                <td>{{ nurse.assigned_ward.name|default:"Not Assigned" }}</td>
+            </tr>
+            <tr>
+                <th>Shift</th>
+                <td>
+                    <span class="status-badge shift-{{ nurse.shift }}">
+                        {{ nurse.get_shift_display }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>
+                    <span class="status-badge {% if nurse.is_on_duty %}status-on-duty{% else %}status-off-duty{% endif %}">
+                        {{ nurse.is_on_duty|yesno:"On Duty,Off Duty" }}
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {% if nurse.additional_skills %}
+    <div class="section">
+        <div class="section-title">Additional Skills</div>
+        <div class="skills-box">
+            {{ nurse.additional_skills }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>This is a computer-generated document. No signature is required.</p>
+        <p>Hospital Management System</p>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,438 @@
+{% extends 'hospital/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h2 class="mb-0">
+                <i class="fas fa-user-nurse me-2"></i>
+                {% if form.instance.pk %}Edit{% else %}Add New{% endif %} Nurse
+            </h2>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <!-- Personal Information -->
+                    <div class="col-md-6">
+                        <h4 class="mb-3 text-success">Personal Information</h4>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <i class="fas fa-user me-2"></i>Full Name
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-user text-success"></i>
+                                </span>
+                                {{ form.name }}
+                            </div>
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                                <i class="fas fa-phone me-2"></i>Phone Number
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-phone text-success"></i>
+                                </span>
+                                {{ form.phone_number }}
+                            </div>
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback d-block">{{ form.phone_number.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-envelope text-success"></i>
+                                </span>
+                                {{ form.email }}
+                            </div>
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.photo.id_for_label }}" class="form-label">
+                                <i class="fas fa-camera me-2"></i>Photo
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-camera text-success"></i>
+                                </span>
+                                {{ form.photo }}
+                            </div>
+                            {% if form.photo.errors %}
+                                <div class="invalid-feedback d-block">{{ form.photo.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Professional Information -->
+                    <div class="col-md-6">
+                        <h4 class="mb-3 text-success">Professional Information</h4>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.department.id_for_label }}" class="form-label">
+                                <i class="fas fa-hospital me-2"></i>Department
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-hospital text-success"></i>
+                                </span>
+                                {{ form.department }}
+                            </div>
+                            {% if form.department.errors %}
+                                <div class="invalid-feedback d-block">{{ form.department.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.specialization.id_for_label }}" class="form-label">
+                                <i class="fas fa-stethoscope me-2"></i>Specialization
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-stethoscope text-success"></i>
+                                </span>
+                                {{ form.specialization }}
+                            </div>
+                            {% if form.specialization.errors %}
+                                <div class="invalid-feedback d-block">{{ form.specialization.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.license_number.id_for_label }}" class="form-label">
+                                <i class="fas fa-id-card me-2"></i>License Number
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-id-card text-success"></i>
+                                </span>
+                                {{ form.license_number }}
+                            </div>
+                            {% if form.license_number.errors %}
+                                <div class="invalid-feedback d-block">{{ form.license_number.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.experience_years.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-2"></i>Years of Experience
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-clock text-success"></i>
+                                </span>
+                                {{ form.experience_years }}
+                            </div>
+                            {% if form.experience_years.errors %}
+                                <div class="invalid-feedback d-block">{{ form.experience_years.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Work Details -->
+                    <div class="col-12 mt-4">
+                        <h4 class="mb-3 text-success">Work Details</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.shift.id_for_label }}" class="form-label">
+                                        <i class="fas fa-clock me-2"></i>Shift
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white">
+                                            <i class="fas fa-clock text-success"></i>
+                                        </span>
+                                        {{ form.shift }}
+                                    </div>
+                                    {% if form.shift.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.shift.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.assigned_ward.id_for_label }}" class="form-label">
+                                        <i class="fas fa-hospital-alt me-2"></i>Assigned Ward
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white">
+                                            <i class="fas fa-hospital-alt text-success"></i>
+                                        </span>
+                                        {{ form.assigned_ward }}
+                                    </div>
+                                    {% if form.assigned_ward.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.assigned_ward.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.joining_date.id_for_label }}" class="form-label">
+                                        <i class="fas fa-calendar-alt me-2"></i>Joining Date
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white">
+                                            <i class="fas fa-calendar-alt text-success"></i>
+                                        </span>
+                                        {{ form.joining_date }}
+                                    </div>
+                                    {% if form.joining_date.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.joining_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.additional_skills.id_for_label }}" class="form-label">
+                                <i class="fas fa-star me-2"></i>Additional Skills
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-star text-success"></i>
+                                </span>
+                                {{ form.additional_skills }}
+                            </div>
+                            {% if form.additional_skills.errors %}
+                                <div class="invalid-feedback d-block">{{ form.additional_skills.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_on_duty }}
+                                <label class="form-check-label" for="{{ form.is_on_duty.id_for_label }}">
+                                    <i class="fas fa-user-clock me-2"></i>Currently On Duty
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas {% if form.instance.pk %}fa-save{% else %}fa-plus-circle{% endif %} me-2"></i>
+                        {% if form.instance.pk %}Update{% else %}Add{% endif %} Nurse
+                    </button>
+                    <a href="{% url 'nurse_list' %}" class="btn btn-secondary btn-lg ms-2">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        padding: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .form-control, .form-select {
+        padding: 0.75rem;
+        border: 2px solid #e9ecef;
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+
+    .input-group-text {
+        border: 2px solid #e9ecef;
+        border-right: none;
+        border-radius: 8px 0 0 8px;
+        min-width: 45px;
+        justify-content: center;
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+    }
+
+    .invalid-feedback {
+        font-size: 0.875em;
+        color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.1);
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-top: 0.25rem;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+    }
+
+    h4 {
+        color: #2c3e50;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Custom file input styling */
+    input[type="file"] {
+        padding: 0.5rem;
+        cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+        background: linear-gradient(45deg, #20c997, #28a745);
+    }
+
+    /* Set wider width for form fields */
+    .input-group {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Override for textarea */
+    .input-group textarea.form-control {
+        width: 100%;
+        max-width: 100%;
+        min-height: 120px;
+    }
+
+    /* Make columns wider */
+    .col-md-6 {
+        padding: 0 25px;
+    }
+
+    /* Add spacing between sections */
+    .row > div {
+        margin-bottom: 30px;
+    }
+
+    /* Make form sections more prominent */
+    h4.text-success {
+        font-size: 1.4rem;
+        padding: 15px 0;
+        margin-bottom: 25px;
+        border-bottom: 3px solid #28a745;
+    }
+
+    /* Make labels more visible */
+    .form-label {
+        font-size: 1.1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    /* Adjust input group text width */
+    .input-group-text {
+        min-width: 45px;
+        justify-content: center;
+    }
+
+    /* Make buttons larger */
+    .btn-lg {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+    }
+
+    /* Container padding */
+    .card-body {
+        padding: 2rem;
+    }
+
+    /* Make form sections more spaced */
+    .col-12.mt-4 {
+        margin-top: 3rem !important;
+    }
+
+    /* Adjust file input width */
+    input[type="file"] {
+        width: 100%;
+    }
+
+    /* Make checkboxes larger */
+    .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+        margin-top: 0.3em;
+    }
+
+    .form-check-label {
+        font-size: 1.1rem;
+        padding-left: 0.5rem;
+    }
+
+    /* Add some responsive adjustments */
+    @media (max-width: 768px) {
+        .col-md-6 {
+            padding: 0 15px;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        .form-label {
+            font-size: 1rem;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %} 

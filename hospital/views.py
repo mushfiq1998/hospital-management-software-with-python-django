@@ -5,7 +5,7 @@ from .models import (
     OTBooking, Payroll, PatientBilling, Medication, Prescription,
     Ambulance, AmbulanceAssignment, Communication, LabTest, OPDAppointment,
     IPDAdmission, Insurance, InsuranceClaim, Department, LeaveRequest,
-    Notice, Report
+    Notice, Report, Nurse
 )
 from .forms import (
     PatientForm, EmployeeForm, DoctorForm, AppointmentForm, 
@@ -13,7 +13,7 @@ from .forms import (
     PrescriptionForm, AmbulanceForm, AmbulanceAssignmentForm,
     CommunicationForm, LabTestForm, OPDAppointmentForm, IPDAdmissionForm,
     InsuranceForm, InsuranceClaimForm, LeaveRequestForm,
-    NoticeForm, ReportForm, ReportFilterForm  # Add these forms
+    NoticeForm, ReportForm, ReportFilterForm, NurseForm  # Add these forms
 )
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -103,6 +103,13 @@ def dashboard(request):
         created_at__gte=timezone.now() - timezone.timedelta(days=7)
     ).count()
     
+    # Add nurse statistics
+    nurses_count = Nurse.objects.count()
+    on_duty_nurses_count = Nurse.objects.filter(is_on_duty=True).count()
+    morning_shift_count = Nurse.objects.filter(shift='morning').count()
+    evening_shift_count = Nurse.objects.filter(shift='evening').count()
+    night_shift_count = Nurse.objects.filter(shift='night').count()
+    
     context = {
         'employees_count': employees_count,
         'patients_count': patients_count,
@@ -131,6 +138,11 @@ def dashboard(request):
         'recent_notices': recent_notices,
         'reports_count': reports_count,
         'recent_reports_count': recent_reports_count,
+        'nurses_count': nurses_count,
+        'on_duty_nurses_count': on_duty_nurses_count,
+        'morning_shift_count': morning_shift_count,
+        'evening_shift_count': evening_shift_count,
+        'night_shift_count': night_shift_count,
     }
     return render(request, 'hospital/dashboard.html', context)
 
@@ -1779,3 +1791,78 @@ def report_edit(request, pk):
     else:
         form = ReportForm(instance=report)
     return render(request, 'hospital/report_form.html', {'form': form, 'report': report})
+
+@login_required
+def nurse_list(request):
+    nurses = Nurse.objects.all()
+    return render(request, 'hospital/nurse_list.html', {'nurses': nurses})
+
+@login_required
+def nurse_detail(request, pk):
+    nurse = get_object_or_404(Nurse, pk=pk)
+    return render(request, 'hospital/nurse_detail.html', {'nurse': nurse})
+
+@login_required
+def nurse_create(request):
+    if request.method == 'POST':
+        form = NurseForm(request.POST, request.FILES)
+        if form.is_valid():
+            nurse = form.save()
+            messages.success(request, 'Nurse created successfully.')
+            return redirect('nurse_detail', pk=nurse.pk)
+    else:
+        form = NurseForm()
+    return render(request, 'hospital/nurse_form.html', {'form': form})
+
+@login_required
+def nurse_edit(request, pk):
+    nurse = get_object_or_404(Nurse, pk=pk)
+    if request.method == 'POST':
+        form = NurseForm(request.POST, request.FILES, instance=nurse)
+        if form.is_valid():
+            nurse = form.save()
+            messages.success(request, 'Nurse updated successfully.')
+            return redirect('nurse_detail', pk=nurse.pk)
+    else:
+        form = NurseForm(instance=nurse)
+    return render(request, 'hospital/nurse_form.html', {'form': form})
+
+@login_required
+def nurse_delete(request, pk):
+    nurse = get_object_or_404(Nurse, pk=pk)
+    if request.method == 'POST':
+        nurse.employee.delete()  # This will also delete the nurse due to CASCADE
+        messages.success(request, 'Nurse deleted successfully.')
+        return redirect('nurse_list')
+    return render(request, 'hospital/nurse_confirm_delete.html', {'nurse': nurse})
+
+@login_required
+def assign_nurse_ward(request, pk):
+    nurse = get_object_or_404(Nurse, pk=pk)
+    if request.method == 'POST':
+        ward_id = request.POST.get('ward')
+        if ward_id:
+            ward = get_object_or_404(Ward, pk=ward_id)
+            nurse.assigned_ward = ward
+            nurse.save()
+            messages.success(request, f'Nurse {nurse.get_name()} assigned to {ward.name}')
+        return redirect('nurse_detail', pk=pk)
+    wards = Ward.objects.all()
+    return render(request, 'hospital/assign_nurse_ward.html', 
+                 {'nurse': nurse, 'wards': wards})
+
+def nurse_pdf(request, pk):
+    nurse = get_object_or_404(Nurse, pk=pk)
+    template_path = 'hospital/nurse_pdf.html'
+    context = {'nurse': nurse}
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="nurse_{pk}.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response

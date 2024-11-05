@@ -1,0 +1,254 @@
+{% extends 'hospital/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="fas fa-user-nurse me-2"></i>
+                Nurse Details
+            </h2>
+            <div>
+                <a href="{% url 'nurse_pdf' nurse.pk %}" class="btn btn-light me-2" target="_blank">
+                    <i class="fas fa-file-pdf me-2"></i>Print PDF
+                </a>
+                <a href="{% url 'nurse_list' %}" class="btn btn-light">
+                    <i class="fas fa-list me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <!-- Personal Information -->
+                <div class="col-md-4 text-center mb-4">
+                    {% if nurse.get_photo_url %}
+                        <img src="{{ nurse.get_photo_url }}" alt="Nurse Photo" class="nurse-photo mb-3">
+                    {% else %}
+                        <div class="no-photo mb-3">
+                            <i class="fas fa-user-nurse"></i>
+                        </div>
+                    {% endif %}
+                    <h3 class="text-success">{{ nurse.get_name }}</h3>
+                    <p class="text-muted">License #{{ nurse.license_number }}</p>
+                    
+                    <div class="status-badges">
+                        <span class="badge {% if nurse.is_on_duty %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ nurse.is_on_duty|yesno:"On Duty,Off Duty" }}
+                        </span>
+                        <span class="badge {% if nurse.shift == 'morning' %}bg-morning
+                            {% elif nurse.shift == 'evening' %}bg-evening
+                            {% else %}bg-night{% endif %}">
+                            {{ nurse.get_shift_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Professional Information -->
+                <div class="col-md-8">
+                    <div class="info-section">
+                        <h4 class="text-success mb-4">Professional Information</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label><i class="fas fa-hospital me-2"></i>Department</label>
+                                    <p>{{ nurse.department.name|default:"Not Assigned" }}</p>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-stethoscope me-2"></i>Specialization</label>
+                                    <p>{{ nurse.specialization|default:"Not Specified" }}</p>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-hospital-alt me-2"></i>Assigned Ward</label>
+                                    <p>{{ nurse.assigned_ward.name|default:"Not Assigned" }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label><i class="fas fa-clock me-2"></i>Experience</label>
+                                    <p>{{ nurse.experience_years }} Years</p>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-phone me-2"></i>Contact</label>
+                                    <p>{{ nurse.get_contact|default:"Not Available" }}</p>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-envelope me-2"></i>Email</label>
+                                    <p>{{ nurse.get_email|default:"Not Available" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if nurse.additional_skills %}
+                    <div class="info-section mt-4">
+                        <h4 class="text-success mb-4">Additional Skills</h4>
+                        <p class="skills-text">{{ nurse.additional_skills }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 text-center">
+                <a href="{% url 'nurse_edit' nurse.pk %}" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-edit me-2"></i>Edit Details
+                </a>
+                <a href="{% url 'assign_nurse_ward' nurse.pk %}" class="btn btn-success btn-lg me-2">
+                    <i class="fas fa-hospital me-2"></i>Assign Ward
+                </a>
+                <a href="{% url 'nurse_delete' nurse.pk %}" class="btn btn-danger btn-lg">
+                    <i class="fas fa-trash me-2"></i>Delete
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nurse-photo {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #28a745;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .no-photo {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4em;
+        color: #28a745;
+        margin: 0 auto;
+        border: 4px solid #28a745;
+    }
+
+    .status-badges {
+        margin-top: 1rem;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        margin: 0 0.3rem;
+    }
+
+    .bg-morning {
+        background: linear-gradient(45deg, #ffc107, #ff9800);
+    }
+
+    .bg-evening {
+        background: linear-gradient(45deg, #17a2b8, #0056b3);
+    }
+
+    .bg-night {
+        background: linear-gradient(45deg, #6f42c1, #4527a0);
+    }
+
+    .info-section {
+        background-color: #f8f9fa;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .info-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item label {
+        display: block;
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .info-item p {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .skills-text {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+    }
+
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+    }
+
+    .btn-danger {
+        background: linear-gradient(45deg, #dc3545, #c82333);
+        border: none;
+    }
+
+    .btn-light {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid white;
+    }
+
+    .btn-light:hover {
+        background: white;
+        color: #28a745;
+    }
+
+    h4.text-success {
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+
+    h4.text-success::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: #28a745;
+        border-radius: 2px;
+    }
+
+    @media (max-width: 768px) {
+        .col-md-4 {
+            margin-bottom: 2rem;
+        }
+
+        .info-section {
+            padding: 1rem;
+        }
+
+        .btn {
+            margin-bottom: 0.5rem;
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %} 
