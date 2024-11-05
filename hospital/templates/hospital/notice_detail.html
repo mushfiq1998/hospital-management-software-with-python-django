@@ -1,0 +1,104 @@
+{% extends 'hospital/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header {% if notice.priority == 'high' %}bg-danger{% elif notice.priority == 'medium' %}bg-warning{% else %}bg-info{% endif %} text-white">
+            <h2>{{ notice.title }}</h2>
+        </div>
+        <div class="card-body">
+            <div class="notice-meta mb-4">
+                <span class="badge {% if notice.priority == 'high' %}bg-danger{% elif notice.priority == 'medium' %}bg-warning{% else %}bg-info{% endif %}">
+                    {{ notice.get_priority_display }} Priority
+                </span>
+                <span class="meta-item">
+                    <i class="fas fa-user"></i> Posted by: {{ notice.posted_by.name|default:"Unknown" }}
+                </span>
+                <span class="meta-item">
+                    <i class="fas fa-calendar"></i> Posted on: {{ notice.created_at|date:"F d, Y" }}
+                </span>
+                {% if notice.expiry_date %}
+                <span class="meta-item">
+                    <i class="fas fa-clock"></i> Expires on: {{ notice.expiry_date|date:"F d, Y" }}
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="notice-content">
+                {{ notice.content|linebreaks }}
+            </div>
+
+            {% if notice.attachment %}
+            <div class="attachment-section mt-4">
+                <h5>Attachment</h5>
+                <div class="attachment-card">
+                    <i class="fas fa-paperclip"></i>
+                    <a href="{{ notice.attachment.url }}" target="_blank" class="attachment-link">
+                        View Attachment
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4 d-flex gap-3">
+                <a href="{% url 'notice_edit' notice.pk %}" class="btn btn-success btn-shine fancy-button">
+                    <span class="button-text">Edit</span>
+                    <span class="button-icon"><i class="fas fa-edit"></i></span>
+                </a>
+                <a href="{% url 'notice_delete' notice.pk %}" class="btn btn-success btn-shine fancy-button">
+                    <span class="button-text">Delete</span>
+                    <span class="button-icon"><i class="fas fa-trash"></i></span>
+                </a>
+                <a href="{% url 'notice_list' %}" class="btn btn-success btn-shine fancy-button">
+                    <span class="button-text">Back to List</span>
+                    <span class="button-icon"><i class="fas fa-arrow-left"></i></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notice-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .meta-item {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .notice-content {
+        font-size: 1.1em;
+        line-height: 1.6;
+    }
+
+    .attachment-section {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    .attachment-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .attachment-link {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+
+    .attachment-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %} 

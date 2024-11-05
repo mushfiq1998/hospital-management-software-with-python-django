@@ -1,14 +1,20 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
-from .models import Patient, Employee, Doctor, Appointment, Ward, Bed,\
-      OTBooking, Payroll, PatientBilling, Medication, Prescription,\
-      Ambulance, AmbulanceAssignment, Communication, LabTest, OPDAppointment,\
-          IPDAdmission, Insurance, InsuranceClaim, Department, LeaveRequest
-from .forms import PatientForm, EmployeeForm, DoctorForm, AppointmentForm, \
-WardForm, BedForm, OTBookingForm, PatientBillingForm, MedicationForm,\
-      PrescriptionForm, AmbulanceForm, AmbulanceAssignmentForm,\
-          CommunicationForm, LabTestForm, OPDAppointmentForm, IPDAdmissionForm,\
-              InsuranceForm, InsuranceClaimForm, LeaveRequestForm
+from .models import (
+    Patient, Employee, Doctor, Appointment, Ward, Bed,
+    OTBooking, Payroll, PatientBilling, Medication, Prescription,
+    Ambulance, AmbulanceAssignment, Communication, LabTest, OPDAppointment,
+    IPDAdmission, Insurance, InsuranceClaim, Department, LeaveRequest,
+    Notice, Report
+)
+from .forms import (
+    PatientForm, EmployeeForm, DoctorForm, AppointmentForm, 
+    WardForm, BedForm, OTBookingForm, PatientBillingForm, MedicationForm,
+    PrescriptionForm, AmbulanceForm, AmbulanceAssignmentForm,
+    CommunicationForm, LabTestForm, OPDAppointmentForm, IPDAdmissionForm,
+    InsuranceForm, InsuranceClaimForm, LeaveRequestForm,
+    NoticeForm, ReportForm, ReportFilterForm  # Add these forms
+)
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -38,6 +44,9 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import LabTest
 from .forms import LabTestForm
+from django.http import FileResponse
+from django.db import models
+from django.db.models import Q
 
 # Dashboard View
 @login_required
@@ -83,6 +92,17 @@ def dashboard(request):
     departments_count = Department.objects.count()
     pending_leave_requests = LeaveRequest.objects.filter(status='pending').count()
     
+    # Add these to your dashboard view
+    notices = Notice.objects.filter(is_active=True)
+    recent_notices = notices.order_by('-created_at')[:5]
+    
+    # Get reports statistics
+    reports_count = Report.objects.filter(is_archived=False).count()
+    recent_reports_count = Report.objects.filter(
+        is_archived=False,
+        created_at__gte=timezone.now() - timezone.timedelta(days=7)
+    ).count()
+    
     context = {
         'employees_count': employees_count,
         'patients_count': patients_count,
@@ -107,6 +127,10 @@ def dashboard(request):
         'pending_claims_count': pending_claims_count,
         'departments_count': departments_count,
         'pending_leave_requests': pending_leave_requests,
+        'notices': notices,
+        'recent_notices': recent_notices,
+        'reports_count': reports_count,
+        'recent_reports_count': recent_reports_count,
     }
     return render(request, 'hospital/dashboard.html', context)
 
@@ -1629,3 +1653,129 @@ def leave_request_pdf(request, pk):
     if pisa_status.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
+# Add these views to your views.py
+
+@login_required
+def notice_list(request):
+    notices = Notice.objects.filter(is_active=True)
+    return render(request, 'hospital/notice_list.html', {'notices': notices})
+
+@login_required
+def notice_create(request):
+    if request.method == 'POST':
+        form = NoticeForm(request.POST, request.FILES)
+        if form.is_valid():
+            notice = form.save(commit=False)
+            try:
+                notice.posted_by = Employee.objects.get(email=request.user.email)
+            except Employee.DoesNotExist:
+                messages.warning(request, 'Notice created but poster information could not be recorded.')
+            notice.save()
+            messages.success(request, 'Notice created successfully.')
+            return redirect('notice_list')
+    else:
+        form = NoticeForm()
+    return render(request, 'hospital/notice_form.html', {'form': form})
+
+@login_required
+def notice_detail(request, pk):
+    notice = get_object_or_404(Notice, pk=pk)
+    return render(request, 'hospital/notice_detail.html', {'notice': notice})
+
+@login_required
+def notice_edit(request, pk):
+    notice = get_object_or_404(Notice, pk=pk)
+    if request.method == 'POST':
+        form = NoticeForm(request.POST, request.FILES, instance=notice)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Notice updated successfully.')
+            return redirect('notice_detail', pk=pk)
+    else:
+        form = NoticeForm(instance=notice)
+    return render(request, 'hospital/notice_form.html', {'form': form})
+
+@login_required
+def notice_delete(request, pk):
+    notice = get_object_or_404(Notice, pk=pk)
+    if request.method == 'POST':
+        notice.is_active = False
+        notice.save()
+        messages.success(request, 'Notice deleted successfully.')
+        return redirect('notice_list')
+    return render(request, 'hospital/notice_confirm_delete.html', {'notice': notice})
+
+@login_required
+def report_list(request):
+    form = ReportFilterForm(request.GET)
+    reports = Report.objects.filter(is_archived=False)
+    
+    if form.is_valid():
+        if form.cleaned_data['report_type']:
+            reports = reports.filter(report_type=form.cleaned_data['report_type'])
+        if form.cleaned_data['date_from']:
+            reports = reports.filter(created_at__date__gte=form.cleaned_data['date_from'])
+        if form.cleaned_data['date_to']:
+            reports = reports.filter(created_at__date__lte=form.cleaned_data['date_to'])
+        if form.cleaned_data['search']:
+            reports = reports.filter(
+                Q(title__icontains=form.cleaned_data['search']) |
+                Q(description__icontains=form.cleaned_data['search'])
+            )
+    
+    return render(request, 'hospital/report_list.html', {
+        'reports': reports,
+        'filter_form': form
+    })
+
+@login_required
+def report_create(request):
+    if request.method == 'POST':
+        form = ReportForm(request.POST, request.FILES)
+        if form.is_valid():
+            report = form.save(commit=False)
+            try:
+                report.generated_by = Employee.objects.get(email=request.user.email)
+            except Employee.DoesNotExist:
+                messages.warning(request, 'Report created but generator information could not be recorded.')
+            report.save()
+            messages.success(request, 'Report created successfully.')
+            return redirect('report_list')
+    else:
+        form = ReportForm()
+    return render(request, 'hospital/report_form.html', {'form': form})
+
+@login_required
+def report_detail(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+    return render(request, 'hospital/report_detail.html', {'report': report})
+
+@login_required
+def report_delete(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+    if request.method == 'POST':
+        report.delete()
+        messages.success(request, 'Report deleted successfully.')
+        return redirect('report_list')
+    return redirect('report_list')
+
+@login_required
+def report_download(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+    response = FileResponse(report.file)
+    response['Content-Disposition'] = f'attachment; filename="{report.file.name}"'
+    return response
+
+@login_required
+def report_edit(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+    if request.method == "POST":
+        form = ReportForm(request.POST, request.FILES, instance=report)
+        if form.is_valid():
+            report = form.save()
+            messages.success(request, 'Report updated successfully.')
+            return redirect('report_detail', pk=report.pk)
+    else:
+        form = ReportForm(instance=report)
+    return render(request, 'hospital/report_form.html', {'form': form, 'report': report})

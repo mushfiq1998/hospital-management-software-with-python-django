@@ -246,4 +246,19 @@ urlpatterns = [
     path('hr/leave-requests/<int:pk>/approve/', views.leave_request_approve, name='leave_request_approve'),
     path('hr/leave-requests/<int:pk>/reject/', views.leave_request_reject, name='leave_request_reject'),
     path('hr/leave-requests/<int:pk>/pdf/', views.leave_request_pdf, name='leave_request_pdf'),
+
+    # Notice Board URLs
+    path('notices/', views.notice_list, name='notice_list'),
+    path('notices/create/', views.notice_create, name='notice_create'),
+    path('notices/<int:pk>/', views.notice_detail, name='notice_detail'),
+    path('notices/<int:pk>/edit/', views.notice_edit, name='notice_edit'),
+    path('notices/<int:pk>/delete/', views.notice_delete, name='notice_delete'),
+
+    # Reports URLs
+    path('reports/', views.report_list, name='report_list'),
+    path('reports/<int:pk>/', views.report_detail, name='report_detail'),
+    path('reports/<int:pk>/edit/', views.report_edit, name='report_edit'),
+    path('reports/create/', views.report_create, name='report_create'),
+    path('reports/<int:pk>/delete/', views.report_delete, name='report_delete'),
+    path('reports/<int:pk>/download/', views.report_download, name='report_download'),
 ]

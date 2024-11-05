@@ -176,6 +176,48 @@
         .card.ipd {
             border-left: 4px solid #4CAF50;
         }
+        .recent-notices {
+            margin-top: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .notice-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+        }
+        .priority-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .priority-high {
+            background-color: #dc3545;
+        }
+        .priority-medium {
+            background-color: #ffc107;
+        }
+        .priority-low {
+            background-color: #17a2b8;
+        }
+        .report-types {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+        .bg-primary { background-color: #4CAF50; }
+        .bg-success { background-color: #28a745; }
+        .bg-info { background-color: #17a2b8; }
+        .bg-warning { background-color: #ffc107; color: #000; }
     </style>
 </head>
 <body>
@@ -462,6 +504,49 @@
                     <a href="{% url 'hr_dashboard' %}" class="card-link">HR Dashboard</a>
                     <a href="{% url 'leave_requests' %}" class="card-link">Leave Requests</a>
                 </div>
+            </div>
+
+            <!-- Notice Board Card -->
+            <div class="card">
+                <div class="card-header">Notice Board</div>
+                <div class="card-body">
+                    <div class="card-icon"><i class="fas fa-bullhorn"></i></div>
+                    <p>View and manage important announcements and notices.</p>
+                    <div class="stats">
+                        {% with high_priority=notices|length %}
+                        <span><i class="fas fa-exclamation-circle"></i> {{ high_priority }} Active Notices</span>
+                        {% endwith %}
+                    </div>
+                    <div class="recent-notices">
+                        {% for notice in recent_notices %}
+                        <div class="notice-item">
+                            <span class="priority-indicator priority-{{ notice.priority }}"></span>
+                            {{ notice.title|truncatechars:30 }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <a href="{% url 'notice_list' %}" class="card-link">View Notice Board</a>
+            </div>
+
+            <!-- Reports Management Card -->
+            <div class="card">
+                <div class="card-header">Reports Management</div>
+                <div class="card-body">
+                    <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                    <p>Generate and manage various hospital reports.</p>
+                    <div class="stats">
+                        <span><i class="fas fa-file-alt"></i> {{ reports_count }} Reports</span>
+                        <span><i class="fas fa-clock"></i> {{ recent_reports_count }} Recent</span>
+                    </div>
+                    <div class="report-types">
+                        <span class="badge bg-primary">Patient</span>
+                        <span class="badge bg-success">Financial</span>
+                        <span class="badge bg-info">Inventory</span>
+                        <span class="badge bg-warning">Staff</span>
+                    </div>
+                </div>
+                <a href="{% url 'report_list' %}" class="card-link">Manage Reports</a>
             </div>
 
             

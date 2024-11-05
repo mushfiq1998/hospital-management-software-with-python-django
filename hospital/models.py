@@ -448,6 +448,7 @@ class LeaveRequest(models.Model):
         ('sick', 'Sick Leave'),
         ('maternity', 'Maternity Leave'),
         ('paternity', 'Paternity Leave'),
+        ('marriage', 'Marriage Leave'),
         ('unpaid', 'Unpaid Leave'),
         ('other', 'Other'),
     ]
@@ -470,6 +471,8 @@ class LeaveRequest(models.Model):
                         null=True, blank=True, related_name='approved_leaves')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    marriage_certificate = models.FileField(upload_to='marriage_certificates/', 
+                                          null=True, blank=True)
 
     def __str__(self):
         return f"{self.employee.name} - {self.leave_type} ({self.start_date} to {self.end_date})"
@@ -539,3 +542,69 @@ class Training(models.Model):
 
     def __str__(self):
         return self.title
+
+class Notice(models.Model):
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    posted_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
+    expiry_date = models.DateField(null=True, blank=True)
+    attachment = models.FileField(upload_to='notice_attachments/', null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ['-created_at']
+
+class Report(models.Model):
+    REPORT_TYPES = (
+        ('lab', 'Laboratory Report'),
+        ('rad', 'Radiology Report'),
+        ('path', 'Pathology Report'),
+        ('op', 'Operation Report'),
+        ('dis', 'Discharge Summary'),
+        ('prog', 'Progress Report'),
+    )
+
+    title = models.CharField(max_length=200)
+    report_type = models.CharField(max_length=10, choices=REPORT_TYPES)
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE, 
+                              related_name='reports', null=True, blank=True)
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, 
+                             related_name='reports', null=True, blank=True)
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, 
+                                 related_name='reports', null=True, blank=True)
+    diagnosis = models.TextField(null=True, blank=True)
+    treatment_plan = models.TextField(null=True, blank=True)
+    prescriptions = models.TextField(blank=True, null=True)
+    file = models.FileField(upload_to='reports/', blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_archived = models.BooleanField(default=False)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        patient_name = self.patient.name if self.patient else "No Patient"
+        return f"{self.title} - {patient_name} ({self.get_report_type_display()})"
+
+class ReportAttachment(models.Model):
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='report_attachments/')
+    filename = models.CharField(max_length=255)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.filename

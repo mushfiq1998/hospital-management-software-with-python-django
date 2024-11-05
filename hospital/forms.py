@@ -4,7 +4,8 @@ from .models import (
     Payroll, PatientBilling, Medication, Prescription, PrescriptionItem, 
     Ambulance, AmbulanceAssignment, Communication, PatientSerial, 
     LabTest, OPDAppointment, IPDAdmission, Insurance, InsuranceClaim,
-    Department, LeaveRequest, Attendance, Performance, Training
+    Department, LeaveRequest, Attendance, Performance, Training,
+    Notice, Report
 )
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
@@ -319,3 +320,62 @@ class LeaveRequestForm(forms.ModelForm):
             if end_date < start_date:
                 raise forms.ValidationError("End date cannot be earlier than start date.")
         return cleaned_data
+
+class NoticeForm(forms.ModelForm):
+    class Meta:
+        model = Notice
+        fields = ['title', 'content', 'priority', 'expiry_date', 'attachment']
+        widgets = {
+            'expiry_date': forms.DateInput(attrs={'type': 'date'}),
+            'content': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class ReportForm(forms.ModelForm):
+    class Meta:
+        model = Report
+        fields = [
+            'title', 
+            'report_type', 
+            'patient', 
+            'doctor', 
+            'department',
+            'diagnosis', 
+            'treatment_plan', 
+            'prescriptions',
+            'file',
+            'notes'
+        ]
+        widgets = {
+            'diagnosis': forms.Textarea(attrs={'rows': 4}),
+            'treatment_plan': forms.Textarea(attrs={'rows': 4}),
+            'prescriptions': forms.Textarea(attrs={'rows': 4}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class ReportFilterForm(forms.Form):
+    report_type = forms.ChoiceField(
+        choices=[('', 'All')] + list(Report.REPORT_TYPES), 
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    date_from = forms.DateField(
+        required=False, 
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        })
+    )
+    date_to = forms.DateField(
+        required=False, 
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        })
+    )
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search reports...'
+        })
+    )

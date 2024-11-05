@@ -1,0 +1,532 @@
+{% extends 'hospital/base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow-lg">
+        <!-- Header -->
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="fas fa-file-medical me-2"></i>
+                Reports
+            </h2>
+            <a href="{% url 'report_create' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-plus-circle me-2"></i>Create Report
+            </a>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card-body bg-light border-bottom">
+            <form method="get" class="filter-form">
+                <h5 class="mb-4">
+                    <i class="fas fa-filter me-2 text-success"></i>
+                    Apply Filters
+                </h5>
+                <div class="row align-items-end g-3">
+                    <!-- Search Field -->
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-search me-1 text-success"></i>Search
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-search text-success"></i>
+                                </span>
+                                {{ filter_form.search }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Type Field -->
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-file-alt me-1 text-success"></i>Report Type
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-file-alt text-success"></i>
+                                </span>
+                                {{ filter_form.report_type }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date From Field -->
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar me-1 text-success"></i>Date From
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-calendar text-success"></i>
+                                </span>
+                                {{ filter_form.date_from }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date To Field -->
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar me-1 text-success"></i>Date To
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="fas fa-calendar text-success"></i>
+                                </span>
+                                {{ filter_form.date_to }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Buttons -->
+                    <div class="col-md-2">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success flex-grow-1">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                            <a href="{% url 'report_list' %}" class="btn btn-light">
+                                <i class="fas fa-redo"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Reports List -->
+        <div class="card-body">
+            {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" style="min-width: 2000px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 150px;">Title</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 100px;">Type</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 150px;">Patient</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 150px;">Doctor</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 150px;">Department</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 200px;">Diagnosis</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 200px;">Treatment Plan</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 200px;">Prescriptions</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 150px;">Created At</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 150px;">Updated At</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 100px;">Archived</th>
+                                <th class="text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 200px;">Notes</th>
+                                <th class="text-center text-success" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; min-width: 200px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr>
+                                <td class="fw-medium">{{ report.title }}</td>
+                                <td>
+                                    <span class="badge bg-success rounded-pill">
+                                        {{ report.get_report_type_display }}
+                                    </span>
+                                </td>
+                                <td>{{ report.patient.name|default:"-" }}</td>
+                                <td>{{ report.doctor.get_name|default:"-" }}</td>
+                                <td>{{ report.department.name|default:"-" }}</td>
+                                <td>{{ report.diagnosis|truncatechars:50|default:"-" }}</td>
+                                <td>{{ report.treatment_plan|truncatechars:50|default:"-" }}</td>
+                                <td>{{ report.prescriptions|truncatechars:50|default:"-" }}</td>
+                                <td>{{ report.created_at|date:"M d, Y H:i" }}</td>
+                                <td>{{ report.updated_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    {% if report.is_archived %}
+                                        <span class="badge bg-warning">Archived</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ report.notes|truncatechars:50|default:"-" }}</td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <!-- View Button -->
+                                        <a href="#" 
+                                           class="btn btn-sm btn-outline-success view-report" 
+                                           data-bs-toggle="modal"
+                                           data-bs-target="#quickViewModal{{ report.pk }}"
+                                           title="Quick View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        <!-- Edit Button -->
+                                        <a href="{% url 'report_edit' report.pk %}" 
+                                           class="btn btn-sm btn-outline-primary edit-report"
+                                           title="Edit Report">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        <!-- Delete Button -->
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ report.pk }}"
+                                                title="Delete Report">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+
+                                        <!-- Download Button -->
+                                        {% if report.file %}
+                                        <a href="{% url 'report_download' report.pk %}" 
+                                           class="btn btn-sm btn-outline-success"
+                                           data-bs-toggle="tooltip" 
+                                           title="Download Report">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteModal{{ report.pk }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">
+                                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                                        Confirm Delete
+                                                    </h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete the report:</p>
+                                                    <p class="fw-bold">"{{ report.title }}"?</p>
+                                                    <p class="text-danger"><small>This action cannot be undone.</small></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                        <i class="fas fa-times me-2"></i>Cancel
+                                                    </button>
+                                                    <form action="{% url 'report_delete' report.pk %}" method="POST" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="fas fa-trash me-2"></i>Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info m-3">
+                    <i class="fas fa-info-circle me-2"></i>No reports found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Card Styles */
+    .card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        padding: 1.5rem;
+    }
+
+    /* Filter Form Styles */
+    .filter-form {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .input-group-text {
+        border: 2px solid #e9ecef;
+        border-right: none;
+        background-color: white;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e9ecef;
+        border-left: none;
+        border-radius: 0 8px 8px 0;
+        padding: 0.75rem 1rem;
+        height: auto;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .input-group > .form-control:focus,
+    .input-group > .form-select:focus {
+        border-color: #28a745;
+        box-shadow: none;
+    }
+
+    .input-group:focus-within .input-group-text {
+        border-color: #28a745;
+    }
+
+    /* Button Styles */
+    .btn {
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+    }
+
+    .btn-outline-success {
+        border-color: #28a745;
+        color: #28a745;
+    }
+
+    .btn-outline-success:hover {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border-color: transparent;
+        color: white;
+    }
+
+    .btn-outline-primary {
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
+
+    .btn-outline-primary:hover {
+        background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        border-color: transparent;
+        color: white;
+    }
+
+    .btn-outline-danger {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    .btn-outline-danger:hover {
+        background: linear-gradient(45deg, #dc3545, #b02a37);
+        border-color: transparent;
+        color: white;
+    }
+
+    /* Table Styles */
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        white-space: nowrap;
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .filter-form {
+            padding: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .d-flex.justify-content-center {
+            flex-wrap: wrap;
+        }
+        
+        .btn-group .btn {
+            width: auto;
+        }
+
+        .table td, .table th {
+            padding: 0.75rem;
+        }
+    }
+
+    /* Modal Styles */
+    .modal-content {
+        border: none;
+        border-radius: 15px;
+    }
+
+    .modal-header {
+        border-radius: 15px 15px 0 0;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #dee2e6;
+    }
+
+    .btn-close-white {
+        filter: brightness(0) invert(1);
+    }
+
+    /* Table Scroll Styles */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Prevent text wrapping in table cells */
+    .table td, .table th {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    /* Modal enhancements */
+    .modal-dialog-scrollable .modal-content {
+        max-height: 90vh;
+    }
+
+    .modal-body h6 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .modal-body p {
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    /* Button loading state */
+    .btn.disabled {
+        pointer-events: none;
+        opacity: 0.65;
+    }
+
+    /* Hover effects for action buttons */
+    .view-report:hover, .edit-report:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* Animation for modal */
+    .modal.fade .modal-dialog {
+        transform: scale(0.8);
+        transition: transform 0.3s ease-out;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+
+    /* Modal content styles */
+    .modal-body label {
+        font-size: 0.875rem;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .modal-body p {
+        margin-bottom: 0;
+    }
+
+    .modal-body .row > div {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .modal-body .row > div:last-child {
+        border-bottom: none;
+    }
+
+    /* Edit button hover effect */
+    .edit-report {
+        transition: all 0.3s ease;
+    }
+
+    .edit-report:hover {
+        background-color: #0d6efd;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Loading spinner */
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.2em;
+    }
+</style>
+
+<!-- Add this script at the end of your template -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Add loading state to edit buttons
+        document.querySelectorAll('.edit-report').forEach(button => {
+            button.addEventListener('click', function() {
+                // Store original content
+                const originalContent = this.innerHTML;
+                
+                // Show loading state
+                this.classList.add('disabled');
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+                
+                // Restore original content after navigation starts
+                setTimeout(() => {
+                    this.innerHTML = originalContent;
+                    this.classList.remove('disabled');
+                }, 500);
+            });
+        });
+
+        // Initialize all modals
+        var modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            new bootstrap.Modal(modal);
+        });
+    });
+</script>
+{% endblock %}
