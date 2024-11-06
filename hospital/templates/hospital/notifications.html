@@ -1,0 +1,236 @@
+{% extends 'hospital/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-lg">
+        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center py-3">
+            <h3 class="mb-0 font-weight-bold">
+                <i class="fas fa-bell me-2 fa-bounce"></i>Notifications
+            </h3>
+            {% if unread_count > 0 %}
+            <button class="btn btn-light btn-lg shadow-sm hover-zoom" onclick="markAllRead()">
+                <i class="fas fa-check-double me-2"></i>Mark All as Read
+            </button>
+            {% endif %}
+        </div>
+        <div class="card-body p-4">
+            {% if notifications %}
+                <div class="notification-list custom-scrollbar">
+                    {% for notification in notifications %}
+                    <div class="notification-item {% if not notification.is_read %}unread{% endif %} shadow-hover" id="notification-{{ notification.id }}">
+                        <div class="notification-icon pulse">
+                            <i class="fas {{ notification.icon }} fa-lg {% if notification.priority == 'high' %}text-danger
+                               {% elif notification.priority == 'medium' %}text-warning
+                               {% else %}text-info{% endif %}">
+                            </i>
+                        </div>
+                        <div class="notification-content">
+                            <h5 class="notification-title text-primary">{{ notification.title }}</h5>
+                            <p class="notification-message">{{ notification.message }}</p>
+                            <small class="notification-time d-flex align-items-center">
+                                <i class="far fa-clock me-2"></i>{{ notification.created_at|timesince }} ago
+                                {% if notification.link %}
+                                    <span class="mx-2">•</span>
+                                    <a href="{{ notification.link }}" class="btn btn-link btn-sm p-0 text-decoration-none">
+                                        <i class="fas fa-external-link-alt me-1"></i>View Details
+                                    </a>
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% if not notification.is_read %}
+                        <button class="btn btn-sm btn-outline-primary rounded-pill shadow-sm hover-lift" 
+                                onclick="markAsRead({{ notification.id }})">
+                            <i class="fas fa-check me-1"></i>Mark as Read
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="empty-state-animation mb-4">
+                        <i class="fas fa-check-circle fa-4x text-success"></i>
+                    </div>
+                    <h4 class="text-primary font-weight-bold">All Caught Up!</h4>
+                    <p class="text-muted lead">You have no new notifications</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .notification-list {
+        max-height: 70vh;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+    
+    .notification-item {
+        display: flex;
+        align-items: start;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .notification-item.unread {
+        background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+        border-left: 4px solid #007bff;
+    }
+    
+    .shadow-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+    }
+    
+    .notification-icon {
+        font-size: 1.5em;
+        margin-right: 1.5rem;
+        padding: 1rem;
+        background: rgba(0,0,0,0.03);
+        border-radius: 50%;
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    .notification-content {
+        flex-grow: 1;
+    }
+    
+    .notification-title {
+        margin: 0;
+        font-size: 1.2em;
+        font-weight: 600;
+    }
+    
+    .notification-message {
+        margin: 0.5rem 0;
+        color: #4a5568;
+        line-height: 1.6;
+    }
+    
+    .notification-time {
+        color: #718096;
+        font-size: 0.9em;
+    }
+    
+    .hover-zoom:hover {
+        transform: scale(1.05);
+        transition: transform 0.2s ease;
+    }
+    
+    .hover-lift:hover {
+        transform: translateY(-2px);
+    }
+    
+    .empty-state-animation {
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+    
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+        100% {
+            transform: translateY(0px);
+        }
+    }
+</style>
+
+<script>
+function markAsRead(notificationId) {
+    fetch(`/notifications/${notificationId}/mark-read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const notification = document.getElementById(`notification-${notificationId}`);
+            notification.classList.remove('unread');
+            const markReadBtn = notification.querySelector('button');
+            if (markReadBtn) {
+                markReadBtn.remove();
+            }
+        }
+    });
+}
+
+function markAllRead() {
+    fetch('/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+                const markReadBtn = item.querySelector('button');
+                if (markReadBtn) {
+                    markReadBtn.remove();
+                }
+            });
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

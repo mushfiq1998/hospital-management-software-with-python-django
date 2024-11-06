@@ -601,7 +601,8 @@ class Report(models.Model):
         return f"{self.title} - {patient_name} ({self.get_report_type_display()})"
 
 class ReportAttachment(models.Model):
-    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='attachments')
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, 
+                               related_name='attachments')
     file = models.FileField(upload_to='report_attachments/')
     filename = models.CharField(max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -647,3 +648,85 @@ class Nurse(models.Model):
 
     class Meta:
         ordering = ['employee__name']
+
+class InventoryCategory(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name_plural = "Inventory Categories"
+
+class InventoryItem(models.Model):
+    UNIT_CHOICES = [
+        ('piece', 'Piece'),
+        ('box', 'Box'),
+        ('carton', 'Carton'),
+        ('packet', 'Packet'),
+        ('bottle', 'Bottle'),
+        ('vial', 'Vial'),
+        ('ampule', 'Ampule'),
+        ('kg', 'Kilogram'),
+        ('g', 'Gram'),
+        ('mg', 'Milligram'),
+        ('ml', 'Milliliter'),
+        ('l', 'Liter'),
+    ]
+    
+    name = models.CharField(max_length=200)
+    category = models.ForeignKey(InventoryCategory,
+                                  on_delete=models.SET_NULL, null=True)
+    description = models.TextField(blank=True, null=True)
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES,
+                            null=True, blank=True)
+    quantity = models.IntegerField(default=0)
+    reorder_level = models.IntegerField(default=10)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2,
+                                     null=True, blank=True)
+    supplier = models.CharField(max_length=200, blank=True, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.name} ({self.quantity} {self.unit})"
+    
+    @property
+    def is_low_stock(self):
+        return self.quantity <= self.reorder_level
+    
+    @property
+    def total_value(self):
+        return self.quantity * self.unit_price
+
+class InventoryTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('in', 'Stock In'),
+        ('out', 'Stock Out'),
+        ('adjust', 'Adjustment'),
+    ]
+    
+    item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE)
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_date = models.DateTimeField(auto_now_add=True)
+    reference = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True)
+    performed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - {self.item.name}"
+    
+    def save(self, *args, **kwargs):
+        if self.transaction_type == 'in':
+            self.item.quantity += self.quantity
+        elif self.transaction_type == 'out':
+            self.item.quantity -= self.quantity
+        elif self.transaction_type == 'adjust':
+            self.item.quantity = self.quantity
+        
+        self.item.save()
+        super().save(*args, **kwargs)

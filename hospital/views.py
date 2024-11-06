@@ -5,7 +5,7 @@ from .models import (
     OTBooking, Payroll, PatientBilling, Medication, Prescription,
     Ambulance, AmbulanceAssignment, Communication, LabTest, OPDAppointment,
     IPDAdmission, Insurance, InsuranceClaim, Department, LeaveRequest,
-    Notice, Report, Nurse
+    Notice, Report, Nurse, InventoryCategory, InventoryItem, InventoryTransaction
 )
 from .forms import (
     PatientForm, EmployeeForm, DoctorForm, AppointmentForm, 
@@ -13,7 +13,8 @@ from .forms import (
     PrescriptionForm, AmbulanceForm, AmbulanceAssignmentForm,
     CommunicationForm, LabTestForm, OPDAppointmentForm, IPDAdmissionForm,
     InsuranceForm, InsuranceClaimForm, LeaveRequestForm,
-    NoticeForm, ReportForm, ReportFilterForm, NurseForm  # Add these forms
+    NoticeForm, ReportForm, ReportFilterForm, NurseForm,
+    InventoryCategoryForm, InventoryItemForm, InventoryTransactionForm
 )
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -47,6 +48,8 @@ from .forms import LabTestForm
 from django.http import FileResponse
 from django.db import models
 from django.db.models import Q
+from django.db.models import F
+from django.db.models import Count
 
 # Dashboard View
 @login_required
@@ -110,6 +113,15 @@ def dashboard(request):
     evening_shift_count = Nurse.objects.filter(shift='evening').count()
     night_shift_count = Nurse.objects.filter(shift='night').count()
     
+    # Add inventory statistics
+    total_items = InventoryItem.objects.count()
+    low_stock_items = InventoryItem.objects.filter(
+        quantity__lte=models.F('reorder_level')
+    ).count()
+    total_value = InventoryItem.objects.aggregate(
+        total=Sum(F('quantity') * F('unit_price'))
+    )['total'] or 0
+    
     context = {
         'employees_count': employees_count,
         'patients_count': patients_count,
@@ -143,6 +155,9 @@ def dashboard(request):
         'morning_shift_count': morning_shift_count,
         'evening_shift_count': evening_shift_count,
         'night_shift_count': night_shift_count,
+        'total_items': total_items,
+        'low_stock_items': low_stock_items,
+        'total_value': total_value,
     }
     return render(request, 'hospital/dashboard.html', context)
 
@@ -1862,6 +1877,148 @@ def nurse_pdf(request, pk):
     template = get_template(template_path)
     html = template.render(context)
     
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+@login_required
+def inventory_dashboard(request):
+    total_items = InventoryItem.objects.count()
+    low_stock_items = InventoryItem.objects.filter(
+        quantity__lte=models.F('reorder_level')
+    ).count()
+    total_value = InventoryItem.objects.aggregate(
+        total=Sum(F('quantity') * F('unit_price'))
+    )['total'] or 0
+    recent_transactions = InventoryTransaction.objects.select_related(
+        'item', 'performed_by'
+    ).order_by('-transaction_date')[:5]
+    
+    categories = InventoryCategory.objects.annotate(
+        items_count=Count('inventoryitem'),
+        category_value=Sum(F('inventoryitem__quantity') * 
+                         F('inventoryitem__unit_price'))
+    )
+    
+    context = {
+        'total_items': total_items,
+        'low_stock_items': low_stock_items,
+        'total_value': total_value,
+        'recent_transactions': recent_transactions,
+        'categories': categories,
+    }
+    return render(request, 'hospital/inventory_dashboard.html', context)
+
+@login_required
+def inventory_item_list(request):
+    items = InventoryItem.objects.select_related('category').all()
+    return render(request, 'hospital/inventory_item_list.html', {'items': items})
+
+@login_required
+def inventory_item_create(request):
+    if request.method == 'POST':
+        form = InventoryItemForm(request.POST)
+        if form.is_valid():
+            item = form.save()
+            # Create initial stock transaction
+            InventoryTransaction.objects.create(
+                item=item,
+                transaction_type='in',
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+                reference='Initial Stock',
+                performed_by=request.user
+            )
+            messages.success(request, 'Inventory item created successfully.')
+            return redirect('inventory_item_detail', pk=item.pk)
+    else:
+        form = InventoryItemForm()
+    return render(request, 'hospital/inventory_item_form.html', {'form': form})
+
+@login_required
+def inventory_transaction_create(request):
+    if request.method == 'POST':
+        form = InventoryTransactionForm(request.POST)
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.performed_by = request.user
+            
+            # Validate stock levels for outgoing transactions
+            if transaction.transaction_type == 'out':
+                if transaction.quantity > transaction.item.quantity:
+                    messages.error(request, 'Insufficient stock available.')
+                    return render(request, 'hospital/inventory_transaction_form.html', 
+                                {'form': form})
+            
+            transaction.save()
+            messages.success(request, 'Transaction recorded successfully.')
+            return redirect('inventory_item_detail', pk=transaction.item.pk)
+    else:
+        form = InventoryTransactionForm()
+    return render(request, 'hospital/inventory_transaction_form.html', 
+                 {'form': form})
+
+@login_required
+def inventory_item_detail(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk)
+    transactions = InventoryTransaction.objects.filter(item=item)\
+        .order_by('-transaction_date')
+    return render(request, 'hospital/inventory_item_detail.html', 
+                 {'item': item, 'transactions': transactions})
+
+@login_required
+def low_stock_items(request):
+    items = InventoryItem.objects.filter(quantity__lte=F('reorder_level'))
+    return render(request, 'hospital/low_stock_items.html', {'items': items})
+
+@login_required
+def inventory_report(request):
+    items = InventoryItem.objects.all()
+    total_value = sum(item.total_value for item in items)
+    low_stock = items.filter(quantity__lte=F('reorder_level'))
+    
+    context = {
+        'items': items,
+        'total_value': total_value,
+        'low_stock': low_stock,
+    }
+    return render(request, 'hospital/inventory_report.html', context)
+
+@login_required
+def inventory_category_create(request):
+    if request.method == 'POST':
+        form = InventoryCategoryForm(request.POST)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, 'Inventory category created successfully.')
+            return redirect('inventory_dashboard')
+    else:
+        form = InventoryCategoryForm()
+    return render(request, 'hospital/inventory_category_form.html', {'form': form})
+
+@login_required
+def inventory_item_pdf(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk)
+    transactions = InventoryTransaction.objects.filter(item=item)\
+        .order_by('-transaction_date')
+    
+    template_path = 'hospital/inventory_item_pdf.html'
+    context = {
+        'item': item,
+        'transactions': transactions,
+        'today': timezone.now().date()
+    }
+    
+    # Create a Django response object, and specify content_type as pdf
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="inventory_item_{pk}.pdf"'
+    
+    # Find the template and render it
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    # Create the PDF
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')

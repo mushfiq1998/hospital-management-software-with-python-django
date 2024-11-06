@@ -5,7 +5,7 @@ from .models import (
     Ambulance, AmbulanceAssignment, Communication, PatientSerial, 
     LabTest, OPDAppointment, IPDAdmission, Insurance, InsuranceClaim,
     Department, LeaveRequest, Attendance, Performance, Training,
-    Notice, Report, Nurse
+    Notice, Report, Nurse, InventoryCategory, InventoryItem, InventoryTransaction
 )
 from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
@@ -432,3 +432,24 @@ class NurseForm(forms.ModelForm):
             nurse.save()
         
         return nurse
+
+class InventoryCategoryForm(forms.ModelForm):
+    class Meta:
+        model = InventoryCategory
+        fields = ['name', 'description']
+
+class InventoryItemForm(forms.ModelForm):
+    class Meta:
+        model = InventoryItem
+        fields = ['name', 'category', 'description', 'unit', 'quantity', 
+                 'reorder_level', 'unit_price', 'supplier', 'location', 
+                 'expiry_date']
+        widgets = {
+            'expiry_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class InventoryTransactionForm(forms.ModelForm):
+    class Meta:
+        model = InventoryTransaction
+        fields = ['item', 'transaction_type', 'quantity', 'unit_price', 
+                 'reference', 'notes']

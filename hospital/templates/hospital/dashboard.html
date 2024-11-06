@@ -254,6 +254,206 @@
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
+        .inventory-stats .stat-item {
+            transition: all 0.3s ease;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .inventory-stats .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .inventory-actions .btn {
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .inventory-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .inventory-actions .btn-primary {
+            background-color: #4CAF50;
+        }
+
+        .inventory-actions .btn-success {
+            background-color: #45a049;
+        }
+
+        .inventory-actions .btn-info {
+            background-color: #2196F3;
+        }
+
+        .inventory-actions .btn-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .stat-card-info {
+            flex-grow: 1;
+        }
+
+        .stat-card-info h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card-info p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .action-button i {
+            font-size: 0.9rem;
+        }
+
+        .action-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: white;
+            opacity: 0.9;
+        }
+
+        .bg-success { background-color: #28a745; }
+        .bg-warning { background-color: #ffc107; }
+        .bg-info { background-color: #17a2b8; }
+        .bg-primary { background-color: #007bff; }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .small-stat {
+            padding: 0.5rem !important;
+            min-height: 60px;
+        }
+
+        .small-icon {
+            font-size: 1.2rem !important;
+            width: 35px !important;
+            height: 35px !important;
+            margin-right: 0.5rem !important;
+        }
+
+        .small-text {
+            font-size: 1.1rem !important;
+            margin-bottom: 0.1rem !important;
+        }
+
+        .small-label {
+            font-size: 0.8rem !important;
+            margin-bottom: 0 !important;
+        }
+
+        .stat-card.small-stat:hover {
+            transform: translateY(-2px);
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem !important;
+            border-radius: 8px;
+            min-height: 60px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card-icon {
+            font-size: 1.2rem !important;
+            width: 35px !important;
+            height: 35px !important;
+            margin-right: 0.5rem !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .stat-card-info {
+            flex-grow: 1;
+        }
+
+        .small-text {
+            font-size: 1.1rem !important;
+            margin-bottom: 0.1rem !important;
+        }
+
+        .small-label {
+            font-size: 0.8rem !important;
+            margin-bottom: 0 !important;
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -608,6 +808,68 @@
                     </div>
                 </div>
                 <a href="{% url 'nurse_list' %}" class="card-link">Manage Nurses</a>
+            </div>
+
+            <!-- Add this card to your dashboard-grid div -->
+            <div class="card">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0 text-white">
+                        <i class="fas fa-boxes me-2"></i>
+                        Inventory Management
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <!-- Summary Stats - Updated to horizontal layout -->
+                    <div class="d-flex justify-content-between gap-2 mb-3">
+                        <div class="stat-card bg-success text-white small-stat flex-1">
+                            <div class="stat-card-icon small-icon">
+                                <i class="fas fa-cubes"></i>
+                            </div>
+                            <div class="stat-card-info">
+                                <h3 class="small-text">{{ total_items }}</h3>
+                                <p class="small-label">Total Items</p>
+                            </div>
+                        </div>
+                        <div class="stat-card bg-warning text-dark small-stat flex-1">
+                            <div class="stat-card-icon small-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-card-info">
+                                <h3 class="small-text">{{ low_stock_items }}</h3>
+                                <p class="small-label">Low Stock</p>
+                            </div>
+                        </div>
+                        <div class="stat-card bg-info text-white small-stat flex-1">
+                            <div class="stat-card-icon small-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-card-info">
+                                <h3 class="small-text">${{ total_value|floatformat:2 }}</h3>
+                                <p class="small-label">Total Value</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <a href="{% url 'inventory_dashboard' %}" class="action-button bg-success btn-sm">
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                            Inventory Dashboard
+                        </a>
+                        <a href="{% url 'inventory_category_create' %}" class="action-button bg-info btn-sm">
+                            <i class="fas fa-folder-plus me-2"></i>
+                            Add Category
+                        </a>
+                        <a href="{% url 'inventory_item_create' %}" class="action-button bg-primary btn-sm">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Add New Item
+                        </a>
+                        <a href="{% url 'inventory_transaction_create' %}" class="action-button bg-warning btn-sm">
+                            <i class="fas fa-exchange-alt me-2"></i>
+                            Record Transaction
+                        </a>
+                    </div>
+                </div>
             </div>
 
         </div>
